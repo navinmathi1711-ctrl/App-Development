@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Folio Notes — Tactile Notes Collection</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="./vendor/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      if (window.tailwind) {
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                folio: {
+                  50: '#FBF9F5',
+                  100: '#F5F1E9',
+                  200: '#EBE2D4',
+                  300: '#DECDB6',
+                  400: '#CBB191',
+                  500: '#B4936E',
+                  600: '#9B7853',
+                  700: '#7E5F40',
+                  800: '#5F462E',
+                  900: '#3D2C1C',
+                }
+              },
+              fontFamily: {
+                serif: ['"Playfair Display"', 'Georgia', 'serif'],
+                sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+              }
+            }
+          }
+        };
+      }
+    </script>
+
+    <!-- React 18 & ReactDOM 18 -->
+    <script src="./vendor/react.min.js"></script>
+    <script>window.React || document.write('<script src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script>')</script>
+    <script src="./vendor/react-dom.min.js"></script>
+    <script>window.ReactDOM || document.write('<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script>')</script>
+    
+    <!-- Babel standalone for in-browser JSX parsing when double-clicking index.html -->
+    <script src="https://unpkg.com/@babel/standalone@7.24.4/babel.min.js"></script>
+
+    <style>
+      body {
+        background-color: #F8F5EE;
+        color: #292524;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      }
+      .font-serif {
+        font-family: 'Playfair Display', Georgia, serif;
+      }
+      .paper-ruled {
+        background-image: repeating-linear-gradient(
+          transparent,
+          transparent 27px,
+          rgba(0, 0, 0, 0.05) 28px
+        );
+        line-height: 28px;
+      }
+      .paper-folded-corner {
+        position: relative;
+        overflow: hidden;
+      }
+      .paper-folded-corner::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        border-width: 0 16px 16px 0;
+        border-style: solid;
+        border-color: rgba(0, 0, 0, 0.08) #F8F5EE;
+        box-shadow: -1px 1px 2px rgba(0, 0, 0, 0.05);
+        transition: border-width 0.2s ease;
+      }
+      .paper-folded-corner:hover::after {
+        border-width: 0 22px 22px 0;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #D6CEBE;
+        border-radius: 9999px;
+      }
+    </style>
+  </head>
+  <body class="bg-[#F8F5EE] text-stone-900 font-sans antialiased min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+      const PAPER_COLORS = [
+        { id: 'cream', name: 'Cream Ivory', hex: '#FEF9C3', border: '#FDE047' },
+        { id: 'sage', name: 'Botanical Sage', hex: '#DCFCE7', border: '#86EFAC' },
+        { id: 'peach', name: 'Warm Amber', hex: '#FFEDD5', border: '#FDBA74' },
+        { id: 'rose', name: 'Rose Quartz', hex: '#FFE4E6', border: '#FDA4AF' },
+        { id: 'lavender', name: 'Lavender Mist', hex: '#EDE9FE', border: '#C4B5FD' },
+        { id: 'sky', name: 'Cerulean Sky', hex: '#E0F2FE', border: '#7DD3FC' },
+        { id: 'mint', name: 'Crisp Mint', hex: '#CCFBF1', border: '#5EEAD4' },
+        { id: 'slate', name: 'Studio Slate', hex: '#F1F5F9', border: '#CBD5E1' },
+        { id: 'white', name: 'Crisp White', hex: '#FFFFFF', border: '#E2E8F0' },
+      ];
+
+      const DEFAULT_COLOR = '#FEF9C3';
+
+      const INITIAL_DEMO_NOTES = [
+        {
+          _id: 'sample-1',
+          id: 'sample-1',
+          title: 'Welcome to Folio Notes',
+          content: 'Write a note, choose its paper color, search the collection, edit it, or remove it.\n\nFolio Notes is a tactile full-stack notes workspace with an Express API, React/Vite interface, and MongoDB persistence.',
+          color: '#FEF9C3',
+          pinned: true,
+          createdAt: new Date(Date.now() - 3600000).toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          _id: 'sample-2',
+          id: 'sample-2',
+          title: 'Paper Color Swatches',
+          content: 'Every idea deserves its own paper feel. Try clicking the color swatches below to change paper tones between Cream, Sage, Peach, Rose, Sky, and Lavender.',
+          color: '#DCFCE7',
+          pinned: false,
+          createdAt: new Date(Date.now() - 7200000).toISOString(),
+          updatedAt: new Date(Date.now() - 1800000).toISOString(),
+        },
+        {
+          _id: 'sample-3',
+          id: 'sample-3',
+          title: 'MongoDB Connection Guide',
+          content: 'For MongoDB local storage, start MongoDB locally or configure MONGO_URI in backend/.env with your Atlas cluster string.',
+          color: '#FFEDD5',
+          pinned: false,
+          createdAt: new Date(Date.now() - 10800000).toISOString(),
+          updatedAt: new Date(Date.now() - 900000).toISOString(),
+        },
+      ];
+
+      // API Helper that talks to Express on port 5000 if available, or falls back to localStorage
+      const API = {
+        async getHealth() {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1200);
+            const res = await fetch('http://localhost:5000/api/health', { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (res.ok) return await res.json();
+          } catch (e) {
+            // Offline / file protocol
+          }
+          return {
+            status: 'offline',
+            mode: 'folder_local',
+            database: { connected: false, status: 'Folder Standalone (localStorage)' }
+          };
+        },
+
+        async getNotes(q = '', color = '') {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1200);
+            const params = new URLSearchParams();
+            if (q) params.append('q', q);
+            if (color) params.append('color', color);
+            const res = await fetch(`http://localhost:5000/api/notes?${params.toString()}`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (res.ok) return await res.json();
+          } catch (e) {
+            // Offline
+          }
+
+          // Fallback to localStorage
+          const local = localStorage.getItem('folio_notes_data');
+          let notes = local ? JSON.parse(local) : INITIAL_DEMO_NOTES;
+          if (q) {
+            const lower = q.toLowerCase();
+            notes = notes.filter(n => n.title.toLowerCase().includes(lower) || n.content.toLowerCase().includes(lower));
+          }
+          if (color) {
+            notes = notes.filter(n => n.color.toLowerCase() === color.toLowerCase());
+          }
+          return notes;
+        },
+
+        async createNote(data) {
+          try {
+            const res = await fetch('http://localhost:5000/api/notes', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
+            });
+            if (res.ok) return await res.json();
+          } catch (e) {}
+
+          const local = localStorage.getItem('folio_notes_data');
+          let notes = local ? JSON.parse(local) : INITIAL_DEMO_NOTES;
+          const newNote = {
+            ...data,
+            _id: 'local-' + Date.now(),
+            id: 'local-' + Date.now(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          notes.unshift(newNote);
+          localStorage.setItem('folio_notes_data', JSON.stringify(notes));
+          return newNote;
+        },
+
+        async updateNote(id, data) {
+          try {
+            const res = await fetch(`http://localhost:5000/api/notes/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
+            });
+            if (res.ok) return await res.json();
+          } catch (e) {}
+
+          const local = localStorage.getItem('folio_notes_data');
+          let notes = local ? JSON.parse(local) : INITIAL_DEMO_NOTES;
+          notes = notes.map(n => (n._id === id || n.id === id ? { ...n, ...data, updatedAt: new Date().toISOString() } : n));
+          localStorage.setItem('folio_notes_data', JSON.stringify(notes));
+          return notes.find(n => n._id === id || n.id === id);
+        },
+
+        async deleteNote(id) {
+          try {
+            const res = await fetch(`http://localhost:5000/api/notes/${id}`, { method: 'DELETE' });
+            if (res.ok) return await res.json();
+          } catch (e) {}
+
+          const local = localStorage.getItem('folio_notes_data');
+          let notes = local ? JSON.parse(local) : INITIAL_DEMO_NOTES;
+          notes = notes.filter(n => n._id !== id && n.id !== id);
+          localStorage.setItem('folio_notes_data', JSON.stringify(notes));
+          return { message: 'Note deleted', id };
+        }
+      };
+
+      // App Component
+      function App() {
+        const [notes, setNotes] = useState([]);
+        const [loading, setLoading] = useState(true);
+        const [searchQuery, setSearchQuery] = useState('');
+        const [selectedColor, setSelectedColor] = useState('');
+        const [pinnedFilter, setPinnedFilter] = useState(false);
+        const [sortBy, setSortBy] = useState('newest');
+        const [viewMode, setViewMode] = useState('grid');
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [editingNote, setEditingNote] = useState(null);
+        const [health, setHealth] = useState(null);
+        const [toast, setToast] = useState(null);
+
+        // Quick Add state
+        const [quickExpanded, setQuickExpanded] = useState(false);
+        const [quickTitle, setQuickTitle] = useState('');
+        const [quickContent, setQuickContent] = useState('');
+        const [quickColor, setQuickColor] = useState(DEFAULT_COLOR);
+        const [quickPinned, setQuickPinned] = useState(false);
+
+        const showToast = (message) => {
+          setToast(message);
+          setTimeout(() => setToast(null), 3000);
+        };
+
+        const loadData = useCallback(async () => {
+          try {
+            setLoading(true);
+            const [h, n] = await Promise.all([API.getHealth(), API.getNotes(searchQuery, selectedColor)]);
+            setHealth(h);
+            setNotes(n);
+          } catch (e) {
+            console.error(e);
+          } finally {
+            setLoading(false);
+          }
+        }, [searchQuery, selectedColor]);
+
+        useEffect(() => {
+          loadData();
+        }, [loadData]);
+
+        const handleSaveNote = async (noteData) => {
+          if (editingNote) {
+            const updated = await API.updateNote(editingNote._id || editingNote.id, noteData);
+            setNotes(prev => prev.map(n => ((n._id || n.id) === (editingNote._id || editingNote.id) ? updated : n)));
+            showToast('Note updated successfully!');
+          } else {
+            const created = await API.createNote(noteData);
+            setNotes(prev => [created, ...prev]);
+            showToast('Note created!');
+          }
+          setIsModalOpen(false);
+          setEditingNote(null);
+        };
+
+        const handleDeleteNote = async (id) => {
+          await API.deleteNote(id);
+          setNotes(prev => prev.filter(n => (n._id || n.id) !== id));
+          showToast('Note removed from folio');
+        };
+
+        const handleUpdateColor = async (id, hex) => {
+          const updated = await API.updateNote(id, { color: hex });
+          setNotes(prev => prev.map(n => ((n._id || n.id) === id ? { ...n, color: hex } : n)));
+          showToast('Paper color changed');
+        };
+
+        const handleTogglePin = async (id, isPinned) => {
+          await API.updateNote(id, { pinned: isPinned });
+          setNotes(prev => prev.map(n => ((n._id || n.id) === id ? { ...n, pinned: isPinned } : n)));
+          showToast(isPinned ? 'Note pinned' : 'Note unpinned');
+        };
+
+        const handleQuickSubmit = async (e) => {
+          e.preventDefault();
+          if (!quickTitle.trim() && !quickContent.trim()) {
+            setQuickExpanded(false);
+            return;
+          }
+          const created = await API.createNote({
+            title: quickTitle.trim() || 'Untitled Note',
+            content: quickContent,
+            color: quickColor,
+            pinned: quickPinned,
+          });
+          setNotes(prev => [created, ...prev]);
+          setQuickTitle('');
+          setQuickContent('');
+          setQuickColor(DEFAULT_COLOR);
+          setQuickPinned(false);
+          setQuickExpanded(false);
+          showToast('Note added!');
+        };
+
+        // Filter and sort notes
+        const displayedNotes = useMemo(() => {
+          let list = [...notes];
+          if (pinnedFilter) list = list.filter(n => n.pinned);
+
+          list.sort((a, b) => {
+            if (a.pinned !== b.pinned) return b.pinned ? 1 : -1;
+            if (sortBy === 'newest') return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+            if (sortBy === 'oldest') return new Date(a.updatedAt || a.createdAt) - new Date(b.updatedAt || b.createdAt);
+            if (sortBy === 'az') return (a.title || '').localeCompare(b.title || '');
+            if (sortBy === 'za') return (b.title || '').localeCompare(a.title || '');
+            return 0;
+          });
+          return list;
+        }, [notes, pinnedFilter, sortBy]);
+
+        const isLive = health?.database?.connected;
+        const isOffline = health?.status === 'offline';
+
+        return (
+          <div className="min-h-screen flex flex-col">
+            
+            {/* Navbar */}
+            <header className="sticky top-0 z-30 bg-[#F8F5EE]/95 backdrop-blur-md border-b border-stone-200/80">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-20 gap-4">
+                  
+                  {/* Brand */}
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-xl bg-stone-800 text-amber-100 flex items-center justify-center font-serif font-bold text-xl shadow-md">
+                      F
+                    </div>
+                    <div>
+                      <h1 className="font-serif font-bold text-2xl text-stone-900 leading-none">Folio Notes</h1>
+                      <p className="text-xs text-stone-500 font-sans hidden sm:block">Tactile stationery notes workspace</p>
+                    </div>
+                  </div>
+
+                  {/* Search */}
+                  <div className="flex-1 max-w-md mx-2 sm:mx-6">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search notes..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-white border border-stone-200 rounded-xl px-4 py-2 text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-400 shadow-sm"
+                      />
+                      {searchQuery && (
+                        <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-stone-400 hover:text-stone-700 text-xs">
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center space-x-3">
+                    {/* Status Pill */}
+                    <span className={`hidden md:inline-flex items-center text-xs font-medium px-3 py-1.5 rounded-xl border ${
+                      isLive 
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                        : isOffline 
+                        ? 'bg-stone-100 text-stone-700 border-stone-300' 
+                        : 'bg-amber-50 text-amber-800 border-amber-200'
+                    }`}>
+                      <span className={`w-2 h-2 rounded-full mr-2 ${isLive ? 'bg-emerald-500' : isOffline ? 'bg-stone-400' : 'bg-amber-500'}`} />
+                      {isLive ? 'MongoDB Live' : isOffline ? 'Folder Mode (Saved)' : 'Express Active'}
+                    </span>
+
+                    {/* View Toggle */}
+                    <div className="bg-stone-200/80 p-1 rounded-xl flex items-center space-x-1">
+                      <button
+                        onClick={() => setViewMode('grid')}
+                        className={`px-2 py-1 rounded-lg text-xs font-semibold ${viewMode === 'grid' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500'}`}
+                      >
+                        Grid
+                      </button>
+                      <button
+                        onClick={() => setViewMode('list')}
+                        className={`px-2 py-1 rounded-lg text-xs font-semibold ${viewMode === 'list' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500'}`}
+                      >
+                        List
+                      </button>
+                    </div>
+
+                    {/* New Note Button */}
+                    <button
+                      onClick={() => { setEditingNote(null); setIsModalOpen(true); }}
+                      className="bg-stone-900 hover:bg-black text-white px-4 py-2 rounded-xl text-sm font-medium shadow transition"
+                    >
+                      + New Note
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </header>
+
+            {/* Main Content */}
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              
+              {/* Quick Add Bar */}
+              <div 
+                style={{ backgroundColor: quickColor }}
+                className="w-full max-w-2xl mx-auto rounded-2xl shadow-sm border border-black/10 overflow-hidden mb-8 transition-all"
+              >
+                {!quickExpanded ? (
+                  <div
+                    onClick={() => setQuickExpanded(true)}
+                    className="p-4 flex items-center justify-between cursor-text text-stone-500 hover:text-stone-700"
+                  >
+                    <span className="text-sm font-medium">Write a note or quick thought...</span>
+                    <span className="text-xs bg-black/5 px-2 py-1 rounded-md text-stone-600 font-mono">Press to write</span>
+                  </div>
+                ) : (
+                  <form onSubmit={handleQuickSubmit} className="p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <input
+                        type="text"
+                        placeholder="Title..."
+                        value={quickTitle}
+                        onChange={(e) => setQuickTitle(e.target.value)}
+                        className="w-full text-lg font-serif font-bold text-stone-900 bg-transparent placeholder-stone-400 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setQuickPinned(!quickPinned)}
+                        className={`px-2 py-1 rounded-lg text-xs font-medium ${quickPinned ? 'bg-amber-300 text-stone-900' : 'text-stone-500'}`}
+                      >
+                        📌 Pin
+                      </button>
+                    </div>
+                    <textarea
+                      placeholder="Take a note..."
+                      value={quickContent}
+                      onChange={(e) => setQuickContent(e.target.value)}
+                      rows={3}
+                      className="w-full bg-transparent text-stone-800 text-sm placeholder-stone-400 focus:outline-none resize-none leading-relaxed"
+                    />
+                    <div className="pt-2 border-t border-black/10 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center space-x-1.5">
+                        {PAPER_COLORS.map(c => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => setQuickColor(c.hex)}
+                            style={{ backgroundColor: c.hex }}
+                            className={`w-6 h-6 rounded-full border ${quickColor === c.hex ? 'ring-2 ring-stone-800' : ''}`}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => setQuickExpanded(false)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium text-stone-600 hover:bg-black/5"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-1.5 rounded-lg bg-stone-900 text-white text-xs font-semibold shadow"
+                        >
+                          Add Note
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+              </div>
+
+              {/* Color Swatch Filter Strip */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 mb-6 border-b border-stone-200/80">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+                  <button
+                    onClick={() => setSelectedColor('')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition border ${
+                      selectedColor === '' ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-700 border-stone-200'
+                    }`}
+                  >
+                    All Notes ({notes.length})
+                  </button>
+                  {PAPER_COLORS.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => setSelectedColor(selectedColor === p.hex ? '' : p.hex)}
+                      style={{ backgroundColor: p.hex }}
+                      className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border border-black/10 transition ${
+                        selectedColor === p.hex ? 'ring-2 ring-stone-900 font-bold scale-105' : 'hover:scale-105'
+                      }`}
+                    >
+                      {p.name.split(' ')[0]}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => setPinnedFilter(!pinnedFilter)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-medium border ${
+                      pinnedFilter ? 'bg-amber-200 border-amber-300 font-bold' : 'bg-white border-stone-200 text-stone-700'
+                    }`}
+                  >
+                    📌 Pinned Only
+                  </button>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-white border border-stone-200 rounded-xl px-2.5 py-1.5 text-xs font-medium text-stone-700 focus:outline-none"
+                  >
+                    <option value="newest">Newest Updated</option>
+                    <option value="oldest">Oldest Updated</option>
+                    <option value="az">Title (A-Z)</option>
+                    <option value="za">Title (Z-A)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Notes Grid / List */}
+              {displayedNotes.length === 0 ? (
+                <div className="py-20 text-center max-w-sm mx-auto">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-stone-200 text-stone-600 flex items-center justify-center font-serif text-2xl">
+                    ✎
+                  </div>
+                  <h3 className="font-serif font-bold text-xl text-stone-800 mb-1">No notes found</h3>
+                  <p className="text-stone-500 text-xs mb-4">Create your first note or clear active filters.</p>
+                  <button
+                    onClick={() => { setSelectedColor(''); setSearchQuery(''); setPinnedFilter(false); }}
+                    className="px-3 py-1.5 rounded-lg bg-stone-800 text-white text-xs font-medium"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5' : 'space-y-4 max-w-3xl mx-auto'}>
+                  {displayedNotes.map(note => (
+                    <div
+                      key={note._id || note.id}
+                      onClick={() => { setEditingNote(note); setIsModalOpen(true); }}
+                      style={{ backgroundColor: note.color || '#FEF9C3' }}
+                      className={`group relative rounded-2xl p-5 shadow-sm hover:shadow-md border border-black/10 transition cursor-pointer flex flex-col justify-between min-h-[190px] paper-folded-corner ${note.pinned ? 'ring-2 ring-amber-500/40' : ''}`}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h3 className="font-serif font-bold text-lg text-stone-900 leading-snug line-clamp-2">
+                            {note.title || 'Untitled Note'}
+                          </h3>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleTogglePin(note._id || note.id, !note.pinned); }}
+                            className="text-stone-400 hover:text-stone-800 p-1"
+                          >
+                            {note.pinned ? '📌' : '📍'}
+                          </button>
+                        </div>
+                        <p className="text-stone-700 text-sm leading-relaxed whitespace-pre-wrap line-clamp-6 font-sans">
+                          {note.content || <span className="italic text-stone-400">Empty sheet...</span>}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-black/10 flex items-center justify-between text-xs text-stone-500">
+                        <span>{new Date(note.updatedAt || note.createdAt).toLocaleDateString()}</span>
+                        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center space-x-1">
+                            {PAPER_COLORS.slice(0, 4).map(c => (
+                              <button
+                                key={c.id}
+                                onClick={(e) => { e.stopPropagation(); handleUpdateColor(note._id || note.id, c.hex); }}
+                                style={{ backgroundColor: c.hex }}
+                                className="w-3.5 h-3.5 rounded-full border border-black/20 hover:scale-125 transition"
+                              />
+                            ))}
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteNote(note._id || note.id); }}
+                            className="text-stone-400 hover:text-red-600 p-1 font-bold"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            </main>
+
+            {/* Note Editor Modal */}
+            {isModalOpen && (
+              <NoteModal
+                note={editingNote}
+                onSave={handleSaveNote}
+                onClose={() => { setIsModalOpen(false); setEditingNote(null); }}
+              />
+            )}
+
+            {/* Toast */}
+            {toast && (
+              <div className="fixed bottom-6 right-6 z-50 bg-stone-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium">
+                {toast}
+              </div>
+            )}
+
+            {/* Footer */}
+            <footer className="mt-12 py-5 border-t border-stone-200/80 bg-stone-100/50 text-center text-xs text-stone-500">
+              Folio Notes — Open via Folder (standalone) or Full-Stack via <code className="text-stone-700 font-mono">run-app.bat</code>
+            </footer>
+
+          </div>
+        );
+      }
+
+      function NoteModal({ note, onSave, onClose }) {
+        const [title, setTitle] = useState(note ? note.title : '');
+        const [content, setContent] = useState(note ? note.content : '');
+        const [color, setColor] = useState(note ? note.color : DEFAULT_COLOR);
+        const [pinned, setPinned] = useState(note ? note.pinned : false);
+        const [isRuled, setIsRuled] = useState(true);
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          onSave({
+            title: title.trim() || 'Untitled Note',
+            content,
+            color,
+            pinned,
+          });
+        };
+
+        return (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+            onClick={onClose}
+          >
+            <div
+              style={{ backgroundColor: color }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl rounded-2xl shadow-2xl border border-black/10 overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="px-5 py-3 border-b border-black/10 flex items-center justify-between">
+                <span className="text-xs font-serif italic text-stone-700">
+                  {note ? 'Editing Sheet' : 'New Folio Sheet'}
+                </span>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsRuled(!isRuled)}
+                    className="text-xs px-2 py-1 rounded bg-black/5 text-stone-800"
+                  >
+                    {isRuled ? 'Ruled Lines' : 'Blank'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPinned(!pinned)}
+                    className={`text-xs px-2 py-1 rounded ${pinned ? 'bg-amber-300 font-bold' : 'bg-black/5'}`}
+                  >
+                    📌
+                  </button>
+                  <button onClick={onClose} className="p-1 text-stone-500 hover:text-black">✕</button>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6 space-y-4 overflow-hidden">
+                <input
+                  type="text"
+                  placeholder="Note Title..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full text-2xl font-serif font-bold text-stone-900 bg-transparent placeholder-stone-400 focus:outline-none border-b border-black/10 pb-2"
+                />
+
+                <div className="flex-1 min-h-[200px] overflow-y-auto">
+                  <textarea
+                    placeholder="Write your note..."
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    className={`w-full h-full min-h-[200px] bg-transparent text-stone-800 placeholder-stone-400 focus:outline-none resize-none leading-relaxed ${isRuled ? 'paper-ruled' : ''}`}
+                  />
+                </div>
+
+                <div className="pt-3 border-t border-black/10 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center space-x-1.5">
+                    {PAPER_COLORS.map(c => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setColor(c.hex)}
+                        style={{ backgroundColor: c.hex }}
+                        className={`w-7 h-7 rounded-full border border-black/10 ${color === c.hex ? 'ring-2 ring-stone-900' : ''}`}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-1.5 rounded-xl text-stone-600 hover:bg-black/5 text-sm font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-1.5 rounded-xl bg-stone-900 text-white text-sm font-medium shadow"
+                    >
+                      Save Note
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>

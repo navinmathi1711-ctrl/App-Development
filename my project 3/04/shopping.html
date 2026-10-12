@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopping List Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ── Custom properties ─────────────────────────────── */
+    :root {
+      --bg:        #f0ede8;
+      --card-bg:   #1a2233;
+      --card-bg2:  #ffffff;
+      --text:      #1a2233;
+      --text-muted:#6b7280;
+      --border:    #e5e0d8;
+      --accent:    #e8a020;
+      --accent-dk: #c47d0a;
+      --done-clr:  #9ca3af;
+      --danger:    #e05555;
+      --shadow:    0 4px 24px rgba(26,34,51,.12);
+      --radius:    14px;
+
+      /* category colours */
+      --cat-produce: #34a853;
+      --cat-dairy:   #4285f4;
+      --cat-bakery:  #e8a020;
+      --cat-meat:    #ea4335;
+      --cat-pantry:  #9c27b0;
+      --cat-other:   #607d8b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 16px 80px;
+    }
+
+    /* ── Page title ─────────────────────────────── */
+    .page-title {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .page-title h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .page-title p {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .72rem;
+      letter-spacing: .18em;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── Main card ─────────────────────────────── */
+    .card {
+      max-width: 580px;
+      margin: 0 auto;
+      background: var(--card-bg2);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* ── Header band ─────────────────────────────── */
+    .card-header {
+      background: var(--card-bg);
+      color: #fff;
+      padding: 22px 28px 20px;
+    }
+    .header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .header-top h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .header-top .date {
+      font-size: .78rem;
+      color: #aab4c8;
+      margin-top: 3px;
+    }
+    .tally {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .tally-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .78rem;
+      color: #aab4c8;
+    }
+    .tally-num {
+      font-family: 'Fraunces', serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      margin-top: 14px;
+      background: rgba(255,255,255,.15);
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width .4s ease;
+    }
+
+    /* ── Input section ─────────────────────────────── */
+    .input-section {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .item-input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: .93rem;
+      color: var(--text);
+      background: #fafafa;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .item-input:focus { border-color: var(--accent); }
+    .item-input::placeholder { color: var(--text-muted); }
+
+    .qty-input {
+      width: 64px;
+      padding: 11px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .88rem;
+      text-align: center;
+      color: var(--text);
+      background: #fafafa;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .qty-input:focus { border-color: var(--accent); }
+
+    .cat-select {
+      padding: 11px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: .83rem;
+      color: var(--text);
+      background: #fafafa;
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .cat-select:focus { border-color: var(--accent); }
+
+    .add-btn {
+      padding: 11px 20px;
+      background: var(--card-bg);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: .88rem;
+      font-weight: 600;
+      letter-spacing: .03em;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      white-space: nowrap;
+    }
+    .add-btn:hover  { background: #253047; }
+    .add-btn:active { transform: scale(.97); }
+
+    /* ── Filter bar ─────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 24px 10px;
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex;
+      background: #f3f0eb;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .filter-btn {
+      padding: 5px 14px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: transparent;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .filter-btn.active {
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    }
+    .spacer { flex: 1; }
+    .clear-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 6px;
+      transition: color .2s, background .2s;
+    }
+    .clear-btn:hover:not(:disabled) { color: var(--danger); background: #fef2f2; }
+    .clear-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .clear-all-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--danger);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 6px;
+      transition: background .2s;
+    }
+    .clear-all-btn:hover { background: #fef2f2; }
+
+    /* ── Task list ─────────────────────────────── */
+    .list-wrap { padding: 6px 0; }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 24px;
+      border-bottom: 1px solid var(--border);
+      animation: slideIn .25s ease;
+      transition: background .2s;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-row:hover { background: #fafaf9; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .item-row { animation: none; }
+    }
+
+    /* Checkbox */
+    .item-check {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      flex-shrink: 0;
+      cursor: pointer;
+      position: relative;
+      background: #fff;
+      transition: border-color .2s, background .2s;
+    }
+    .item-check:checked {
+      background: var(--card-bg);
+      border-color: var(--card-bg);
+    }
+    .item-check:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px; top: 2px;
+      width: 8px; height: 13px;
+      border: 2.5px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+    }
+    .item-check:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* Item content */
+    .item-body { flex: 1; min-width: 0; }
+    .item-text {
+      font-family: 'Inter', sans-serif;
+      font-size: .92rem;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color .2s, text-decoration .2s;
+    }
+    .item-row.done .item-text {
+      text-decoration: line-through;
+      color: var(--done-clr);
+    }
+    .item-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+    }
+    .item-qty {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .72rem;
+      color: var(--text-muted);
+    }
+    .cat-badge {
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 99px;
+      color: #fff;
+    }
+    .cat-badge.produce { background: var(--cat-produce); }
+    .cat-badge.dairy   { background: var(--cat-dairy);   }
+    .cat-badge.bakery  { background: var(--cat-bakery); color: #1a2233; }
+    .cat-badge.meat    { background: var(--cat-meat);    }
+    .cat-badge.pantry  { background: var(--cat-pantry);  }
+    .cat-badge.other   { background: var(--cat-other);   }
+
+    /* Delete button */
+    .del-btn {
+      background: none;
+      border: none;
+      color: transparent;
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: color .15s, background .15s;
+      flex-shrink: 0;
+    }
+    .item-row:hover .del-btn,
+    .del-btn:focus-visible { color: var(--done-clr); }
+    .del-btn:hover { color: var(--danger) !important; background: #fef2f2; }
+    .del-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ── Empty state ─────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 38px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .empty-state p { font-size: .88rem; }
+
+    /* ── Footer ─────────────────────────────── */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 24px;
+      border-top: 1px solid var(--border);
+      background: #fafaf9;
+    }
+    .footer-left {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .78rem;
+      color: var(--text-muted);
+    }
+    .footer-right {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Page heading -->
+  <div class="page-title">
+    <h1>Shopping List</h1>
+    <p>EX.NO: 04 &bull; SHOPPING LIST MANAGER</p>
+  </div>
+
+  <!-- Main card -->
+  <div class="card">
+
+    <!-- Header band -->
+    <div class="card-header">
+      <div class="header-top">
+        <div>
+          <h2>Market Basket</h2>
+          <div class="date" id="dateLabel"></div>
+        </div>
+        <div class="tally">
+          <div class="tally-text">items picked</div>
+          <div class="tally-num" id="tallyNum">0/0</div>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Input section -->
+    <div class="input-section">
+      <div class="input-row">
+        <input
+          id="itemInput"
+          class="item-input"
+          type="text"
+          maxlength="100"
+          placeholder="What do you need to buy?"
+          autocomplete="off"
+        />
+        <input
+          id="qtyInput"
+          class="qty-input"
+          type="number"
+          min="1"
+          max="99"
+          value="1"
+          title="Quantity"
+        />
+        <select id="catSelect" class="cat-select" title="Category">
+          <option value="produce">🥦 Produce</option>
+          <option value="dairy">🥛 Dairy</option>
+          <option value="bakery">🍞 Bakery</option>
+          <option value="meat">🥩 Meat</option>
+          <option value="pantry">🫙 Pantry</option>
+          <option value="other">📦 Other</option>
+        </select>
+        <button id="addBtn" class="add-btn">Add item</button>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="active">Pending</button>
+        <button class="filter-btn" data-filter="done">Picked</button>
+      </div>
+      <div class="spacer"></div>
+      <button id="clearDoneBtn" class="clear-btn" disabled>Clear picked</button>
+      <button id="clearAllBtn"  class="clear-all-btn">Clear all</button>
+    </div>
+
+    <!-- List -->
+    <div class="list-wrap">
+      <ul id="ledger" style="list-style:none;"></ul>
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer">
+      <span class="footer-left" id="footerText">0 items left</span>
+      <div class="footer-right">
+        <!-- intentionally empty; buttons live in filter-bar -->
+      </div>
+    </div>
+
+  </div><!-- .card -->
+
+  <script>
+    /* ── Constants ─────────────────────────────── */
+    const STORE_KEY    = 'basket-items';
+    const STORE_ID_KEY = 'basket-nextId';
+
+    const CAT_LABELS = {
+      produce: 'Produce',
+      dairy:   'Dairy',
+      bakery:  'Bakery',
+      meat:    'Meat',
+      pantry:  'Pantry',
+      other:   'Other',
+    };
+
+    /* ── State ─────────────────────────────── */
+    let items  = [];
+    let nextId = 1;
+    let activeFilter = 'all';
+
+    /* ── Persistence ─────────────────────────────── */
+    function loadItems() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        const rid = localStorage.getItem(STORE_ID_KEY);
+        if (raw) items  = JSON.parse(raw);
+        if (rid) nextId = parseInt(rid, 10) || 1;
+      } catch (_) { /* storage blocked */ }
+
+      if (items.length === 0) {
+        items = [
+          { id: nextId++, text: 'Whole milk',          qty: 2, cat: 'dairy',   done: false },
+          { id: nextId++, text: 'Sourdough bread',     qty: 1, cat: 'bakery',  done: false },
+          { id: nextId++, text: 'Chicken breast',      qty: 3, cat: 'meat',    done: false },
+          { id: nextId++, text: 'Broccoli florets',    qty: 1, cat: 'produce', done: false },
+          { id: nextId++, text: 'Olive oil (500 ml)',  qty: 1, cat: 'pantry',  done: false },
+        ];
+      }
+    }
+
+    function saveItems() {
+      try {
+        localStorage.setItem(STORE_KEY,    JSON.stringify(items));
+        localStorage.setItem(STORE_ID_KEY, String(nextId));
+      } catch (_) { /* storage blocked */ }
+    }
+
+    /* ── Helpers ─────────────────────────────── */
+    function pluralise(n, word) {
+      return n === 1 ? `${n} ${word}` : `${n} ${word}s`;
+    }
+
+    function setDate() {
+      const d = new Date();
+      document.getElementById('dateLabel').textContent =
+        d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    /* ── Core actions ─────────────────────────────── */
+    function addItem() {
+      const text = document.getElementById('itemInput').value.trim();
+      if (!text) { document.getElementById('itemInput').focus(); return; }
+
+      const qty = Math.max(1, parseInt(document.getElementById('qtyInput').value, 10) || 1);
+      const cat = document.getElementById('catSelect').value;
+
+      items.push({ id: nextId++, text, qty, cat, done: false });
+      document.getElementById('itemInput').value = '';
+      document.getElementById('qtyInput').value  = '1';
+      document.getElementById('itemInput').focus();
+      render();
+    }
+
+    function toggleItem(id) {
+      const item = items.find(i => i.id === id);
+      if (item) { item.done = !item.done; render(); }
+    }
+
+    function removeItem(id) {
+      items = items.filter(i => i.id !== id);
+      render();
+    }
+
+    function removePicked() {
+      items = items.filter(i => !i.done);
+      render();
+    }
+
+    function removeAll() {
+      if (!items.length) return;
+      if (!confirm('Remove all items from the list?')) return;
+      items  = [];
+      nextId = 1;
+      render();
+    }
+
+    /* ── Render ─────────────────────────────── */
+    function render() {
+      const ledger = document.getElementById('ledger');
+      ledger.innerHTML = '';
+
+      /* Filter */
+      const visible = items.filter(i => {
+        if (activeFilter === 'active') return !i.done;
+        if (activeFilter === 'done')   return  i.done;
+        return true;
+      });
+
+      /* Empty state */
+      if (visible.length === 0) {
+        const msgs = {
+          all:    { icon: '🛒', text: 'Your basket is empty. Add something above!' },
+          active: { icon: '✅', text: 'Nothing pending — well done!' },
+          done:   { icon: '📭', text: 'Nothing picked yet.' },
+        };
+        const m = msgs[activeFilter];
+        const li = document.createElement('li');
+        li.className = 'empty-state';
+        li.innerHTML = `<div class="icon">${m.icon}</div><p>${m.text}</p>`;
+        ledger.appendChild(li);
+      }
+
+      /* Build rows */
+      visible.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'item-row' + (item.done ? ' done' : '');
+
+        /* Checkbox */
+        const chk = document.createElement('input');
+        chk.type      = 'checkbox';
+        chk.className = 'item-check';
+        chk.checked   = item.done;
+        chk.setAttribute('aria-label', 'Mark ' + item.text + ' as ' + (item.done ? 'pending' : 'picked'));
+        chk.addEventListener('change', () => toggleItem(item.id));
+
+        /* Body */
+        const body = document.createElement('div');
+        body.className = 'item-body';
+
+        const txt = document.createElement('div');
+        txt.className   = 'item-text';
+        txt.textContent = item.text;
+
+        const meta = document.createElement('div');
+        meta.className = 'item-meta';
+
+        const qty = document.createElement('span');
+        qty.className   = 'item-qty';
+        qty.textContent = 'Qty: ' + item.qty;
+
+        const badge = document.createElement('span');
+        badge.className   = 'cat-badge ' + item.cat;
+        badge.textContent = CAT_LABELS[item.cat] || item.cat;
+
+        meta.appendChild(qty);
+        meta.appendChild(badge);
+        body.appendChild(txt);
+        body.appendChild(meta);
+
+        /* Delete */
+        const del = document.createElement('button');
+        del.className         = 'del-btn';
+        del.textContent       = '✕';
+        del.setAttribute('aria-label', 'Remove ' + item.text);
+        del.addEventListener('click', () => removeItem(item.id));
+
+        li.appendChild(chk);
+        li.appendChild(body);
+        li.appendChild(del);
+        ledger.appendChild(li);
+      });
+
+      /* Tally & progress */
+      const total  = items.length;
+      const done   = items.filter(i => i.done).length;
+      const pending = items.filter(i => !i.done).length;
+
+      document.getElementById('tallyNum').textContent = `${done}/${total}`;
+
+      const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+      document.getElementById('progressBar').style.width = pct + '%';
+
+      document.getElementById('footerText').textContent =
+        pending === 0 && total > 0
+          ? 'All items picked! 🎉'
+          : pluralise(pending, 'item') + ' left';
+
+      /* Buttons */
+      document.getElementById('clearDoneBtn').disabled = done === 0;
+
+      /* Active filter highlight */
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === activeFilter);
+      });
+
+      saveItems();
+    }
+
+    /* ── Events ─────────────────────────────── */
+    document.getElementById('addBtn').addEventListener('click', addItem);
+
+    document.getElementById('itemInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addItem();
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    document.getElementById('clearDoneBtn').addEventListener('click', removePicked);
+    document.getElementById('clearAllBtn').addEventListener('click',  removeAll);
+
+    /* ── Init ─────────────────────────────── */
+    setDate();
+    loadItems();
+    render();
+  </script>
+</body>
+</html>

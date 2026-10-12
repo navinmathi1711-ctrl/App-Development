@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morrow — Warm Authentication & Workspace</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Local Compiled Tailwind CSS -->
+    <link rel="stylesheet" href="./vendor/style.css">
+    <!-- Tailwind CDN fallback -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      if (window.tailwind) {
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                cream: { 50: '#FDFBF7', 100: '#FAF6EE', 200: '#F4ECE0', 300: '#ECE0CE' },
+                warm: { 50: '#FCF9F6', 100: '#F7F2EC', 200: '#EFE5D8', 300: '#DFCEBA', 400: '#C7B198', 500: '#AF9276', 600: '#94765B', 700: '#785E47', 800: '#5B4636', 900: '#3D2F24' },
+                terracotta: { 50: '#FDF6F4', 100: '#FBECE8', 200: '#F6D7CF', 300: '#EEB9AA', 400: '#E2907A', 500: '#D56D52', 600: '#C05338', 700: '#9E3F28', 800: '#7F3423', 900: '#682E20' },
+              },
+              fontFamily: {
+                serif: ['"Playfair Display"', 'Georgia', 'serif'],
+                sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+              }
+            }
+          }
+        };
+      }
+    </script>
+
+    <!-- React 18 & ReactDOM 18 (Local vendor with CDN fallback) -->
+    <script src="./vendor/react.min.js"></script>
+    <script>window.React || document.write('<script src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script>')</script>
+    <script src="./vendor/react-dom.min.js"></script>
+    <script>window.ReactDOM || document.write('<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script>')</script>
+
+    <style>
+      body {
+        background-color: #FAF6F0;
+        color: #2D231E;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      }
+      .font-serif {
+        font-family: 'Playfair Display', Georgia, serif;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+    </style>
+  </head>
+  <body class="bg-[#FAF7F2] text-warm-900 font-sans antialiased selection:bg-terracotta-200 selection:text-terracotta-900">
+    <div id="root"></div>
+
+    <!-- Application Script (Runs natively in file:// and http://) -->
+    <script>
+      (function() {
+        const { useState, useEffect, createElement: h } = window.React;
+        const ReactDOM = window.ReactDOM;
+
+        // --- SHA-256 PURE JS IMPLEMENTATION (Guarantees zero crashes on file://) ---
+        function jsSha256(ascii) {
+          function rightRotate(value, amount) {
+            return (value >>> amount) | (value << (32 - amount));
+          }
+          var mathPow = Math.pow;
+          var maxWord = mathPow(2, 32);
+          var lengthProperty = 'length';
+          var i, j;
+          var result = '';
+          var words = [];
+          var asciiBitLength = ascii[lengthProperty] * 8;
+          var hash = jsSha256.h = jsSha256.h || [];
+          var k = jsSha256.k = jsSha256.k || [];
+          var primeCounter = k[lengthProperty];
+          var isComposite = {};
+          for (var candidate = 2; primeCounter < 64; candidate++) {
+            if (!isComposite[candidate]) {
+              for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+              hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
+              k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+            }
+          }
+          ascii += '\x80';
+          while ((ascii[lengthProperty] % 64) - 56) ascii += '\x00';
+          for (i = 0; i < ascii[lengthProperty]; i++) {
+            j = ascii.charCodeAt(i);
+            if (j >> 8) return;
+            words[i >> 2] |= j << (((3 - i) % 4) * 8);
+          }
+          words[words[lengthProperty]] = (asciiBitLength / maxWord) | 0;
+          words[words[lengthProperty]] = asciiBitLength;
+          for (j = 0; j < words[lengthProperty]; ) {
+            var w = words.slice(j, (j += 16));
+            var oldHash = hash.slice(0);
+            for (i = 0; i < 64; i++) {
+              var w15 = w[i - 15], w2 = w[i - 2];
+              var s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3);
+              var s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10);
+              var ch = (hash[4] & hash[5]) ^ (~hash[4] & hash[6]);
+              var temp1 = hash[7] + (rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25)) + ch + k[i] + (w[i] = i < 16 ? w[i] : (w[i - 16] + s0 + w[i - 7] + s1) | 0);
+              var maj = (hash[0] & hash[1]) ^ (hash[0] & hash[2]) ^ (hash[1] & hash[2]);
+              var temp2 = (rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22)) + maj;
+              hash = [(temp1 + temp2) | 0].concat(hash);
+              hash[4] = (hash[4] + temp1) | 0;
+            }
+            for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+          }
+          for (i = 0; i < 8; i++) {
+            for (j = 3; j + 1; j--) {
+              var b = (hash[i] >> (j * 8)) & 255;
+              result += (b < 16 ? '0' : '') + b.toString(16);
+            }
+          }
+          return result;
+        }
+
+        // --- WEB CRYPTO & SALT UTILITIES ---
+        function generateSalt() {
+          if (window.crypto && window.crypto.getRandomValues) {
+            const arr = new Uint8Array(16);
+            window.crypto.getRandomValues(arr);
+            return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+          }
+          return Array.from({ length: 16 }, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join('');
+        }
+
+        async function hashPassword(password, salt) {
+          const raw = `${salt}:${password}`;
+          if (window.crypto && window.crypto.subtle) {
+            try {
+              const enc = new TextEncoder().encode(raw);
+              const buf = await window.crypto.subtle.digest('SHA-256', enc);
+              return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
+            } catch (e) {
+              console.warn('SubtleCrypto not permitted in this context, falling back to JS SHA-256', e);
+            }
+          }
+          return jsSha256(raw);
+        }
+
+        async function verifyPassword(password, salt, storedHash) {
+          const computed = await hashPassword(password, salt);
+          return computed === storedHash;
+        }
+
+        // --- STORAGE HELPERS ---
+        const STORAGE_KEYS = { USERS: 'morrow_demo_users', SESSION: 'morrow_demo_session' };
+
+        function getStoredUsers() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEYS.USERS);
+            return raw ? JSON.parse(raw) : [];
+          } catch (e) { return []; }
+        }
+
+        function findUserByEmail(email) {
+          if (!email) return null;
+          const users = getStoredUsers();
+          return users.find(u => u.email.trim().toLowerCase() === email.trim().toLowerCase()) || null;
+        }
+
+        function saveNewUser(user) {
+          const users = getStoredUsers();
+          const avatarColors = ['#D56D52', '#81B29A', '#E07A5F', '#3D405B', '#C05338', '#6C8E70'];
+          const randomColor = avatarColors[Math.floor(Math.random() * avatarColors.length)];
+          const newUser = {
+            id: 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+            name: user.name.trim(),
+            email: user.email.trim().toLowerCase(),
+            salt: user.salt,
+            passwordHash: user.passwordHash,
+            createdAt: new Date().toISOString(),
+            avatarColor: randomColor,
+            bio: 'Productive creator focusing on thoughtful, calm mornings.',
+            todos: [
+              { id: 'td_1', text: 'Review daily intentions', completed: true },
+              { id: 'td_2', text: 'Inspect browser Web Crypto SHA-256 credentials', completed: false }
+            ]
+          };
+          users.push(newUser);
+          localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+          return newUser;
+        }
+
+        function updateUser(userId, updates) {
+          const users = getStoredUsers();
+          const idx = users.findIndex(u => u.id === userId);
+          if (idx === -1) return null;
+          users[idx] = Object.assign({}, users[idx], updates);
+          localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+          const current = getCurrentSession();
+          if (current && current.id === userId) {
+            localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(Object.assign({}, current, updates)));
+          }
+          return users[idx];
+        }
+
+        function getCurrentSession() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEYS.SESSION);
+            if (!raw) return null;
+            const session = JSON.parse(raw);
+            const users = getStoredUsers();
+            return users.find(u => u.id === session.id) || session;
+          } catch (e) { return null; }
+        }
+
+        function setCurrentSession(user) {
+          if (!user) { localStorage.removeItem(STORAGE_KEYS.SESSION); return; }
+          localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(user));
+        }
+
+        function clearCurrentSession() { localStorage.removeItem(STORAGE_KEYS.SESSION); }
+        function clearAllData() { localStorage.removeItem(STORAGE_KEYS.USERS); localStorage.removeItem(STORAGE_KEYS.SESSION); }
+
+        // --- VALIDATION HELPERS ---
+        function isValidEmail(email) {
+          return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test((email || '').trim());
+        }
+
+        function evaluatePasswordStrength(pwd) {
+          if (!pwd) return { score: 0, label: 'Too short', color: 'bg-warm-300', textCol: 'text-warm-500', rules: { length: false, lower: false, upper: false, num: false, sym: false } };
+          const rules = {
+            length: pwd.length >= 8,
+            lower: /[a-z]/.test(pwd),
+            upper: /[A-Z]/.test(pwd),
+            num: /[0-9]/.test(pwd),
+            sym: /[^a-zA-Z0-9]/.test(pwd)
+          };
+          let score = 0;
+          if (rules.length) score++;
+          if (rules.lower && rules.upper) score++;
+          if (rules.num) score++;
+          if (rules.sym) score++;
+          if (pwd.length < 8) score = Math.min(score, 1);
+          let label = 'Weak', color = 'bg-rose-500', textCol = 'text-rose-600';
+          if (score === 2) { label = 'Fair'; color = 'bg-amber-500'; textCol = 'text-amber-600'; }
+          else if (score === 3) { label = 'Good'; color = 'bg-emerald-500'; textCol = 'text-emerald-600'; }
+          else if (score >= 4) { label = 'Strong'; color = 'bg-teal-600'; textCol = 'text-teal-700'; }
+          return { score, label, color, textCol, rules };
+        }
+
+        // --- SVG ICONS HELPER ---
+        function SvgIcon({ name, className = 'w-4 h-4' }) {
+          const common = { className, fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round', viewBox: '0 0 24 24' };
+          switch (name) {
+            case 'sun':
+              return h('svg', common, h('circle', { cx: '12', cy: '12', r: '4' }), h('path', { d: 'M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41' }));
+            case 'shield-check':
+              return h('svg', common, h('path', { d: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' }), h('path', { d: 'm9 12 2 2 4-4' }));
+            case 'mail':
+              return h('svg', common, h('rect', { width: '20', height: '16', x: '2', y: '4', rx: '2' }), h('path', { d: 'm22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7' }));
+            case 'lock':
+              return h('svg', common, h('rect', { width: '18', height: '11', x: '3', y: '11', rx: '2', ry: '2' }), h('path', { d: 'M7 11V7a5 5 0 0 1 10 0v4' }));
+            case 'user':
+              return h('svg', common, h('path', { d: 'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2' }), h('circle', { cx: '12', cy: '7', r: '4' }));
+            case 'eye':
+              return h('svg', common, h('path', { d: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z' }), h('circle', { cx: '12', cy: '12', r: '3' }));
+            case 'eye-off':
+              return h('svg', common, h('path', { d: 'M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20' }));
+            case 'plus':
+              return h('svg', common, h('path', { d: 'M5 12h14M12 5v14' }));
+            case 'trash':
+              return h('svg', common, h('path', { d: 'M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2' }));
+            case 'check-circle':
+              return h('svg', common, h('path', { d: 'M22 11.08V12a10 10 0 1 1-5.93-9.14' }), h('polyline', { points: '22 4 12 14.01 9 11.01' }));
+            case 'circle':
+              return h('svg', common, h('circle', { cx: '12', cy: '12', r: '10' }));
+            case 'key':
+              return h('svg', common, h('circle', { cx: '7.5', cy: '15.5', r: '5.5' }), h('path', { d: 'm21 2-9.6 9.6M15.5 7.5l3 3M18.5 4.5l3 3' }));
+            case 'logout':
+              return h('svg', common, h('path', { d: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9' }));
+            default:
+              return h('svg', common, h('circle', { cx: '12', cy: '12', r: '9' }));
+          }
+        }
+
+        // --- HERO BRAND COMPONENT ---
+        function BrandHero() {
+          return h('div', { className: 'relative flex flex-col justify-between p-8 sm:p-12 lg:p-16 h-full text-warm-900 bg-gradient-to-br from-[#F5EDE3] via-[#FBF5EC] to-[#F1E4D3] overflow-hidden border-b lg:border-b-0 lg:border-r border-warm-200' },
+            h('div', { className: 'relative z-10' },
+              h('div', { className: 'flex items-center gap-3 mb-8' },
+                h('div', { className: 'w-11 h-11 rounded-2xl bg-gradient-to-tr from-terracotta-600 to-terracotta-400 flex items-center justify-center text-white shadow-md' },
+                  h(SvgIcon, { name: 'sun', className: 'w-6 h-6 stroke-[2.2]' })
+                ),
+                h('div', null,
+                  h('span', { className: 'font-serif text-2xl font-bold tracking-tight text-warm-900 block' }, 'Morrow'),
+                  h('span', { className: 'block text-xs uppercase tracking-widest font-semibold text-terracotta-700/80' }, 'Studio & Workspace')
+                )
+              ),
+              h('div', { className: 'max-w-md' },
+                h('h1', { className: 'font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-warm-900 leading-[1.18] tracking-tight mb-4' },
+                  'Calm spaces for tomorrow\'s best work.'
+                ),
+                h('p', { className: 'text-base sm:text-lg text-warm-700 font-normal leading-relaxed' },
+                  'Begin each day with intentional clarity. A gentle, distraction-free environment crafted for thinkers, writers, and makers.'
+                )
+              )
+            ),
+            h('div', { className: 'relative z-10 my-8 sm:my-10' },
+              h('div', { className: 'bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/60 space-y-4 max-w-md' },
+                h('p', { className: 'font-serif italic text-warm-800 text-sm sm:text-base leading-relaxed' },
+                  '“Order and calm are the secret architecture of great work. Take your time, think deeply, and build gently.”'
+                ),
+                h('div', { className: 'pt-3 border-t border-warm-100 flex items-center justify-between text-xs text-warm-600 font-medium' },
+                  h('span', { className: 'text-terracotta-700 font-semibold' }, '✦ Daily Focus Note'),
+                  h('span', null, 'Morning Edition')
+                )
+              ),
+              h('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 max-w-md' },
+                h('div', { className: 'flex items-center gap-2 p-3 rounded-xl bg-warm-100/70 border border-warm-200/60 text-xs font-medium text-warm-800' },
+                  h(SvgIcon, { name: 'shield-check', className: 'w-4 h-4 text-terracotta-600' }),
+                  h('span', null, 'Web Crypto SHA-256')
+                ),
+                h('div', { className: 'flex items-center gap-2 p-3 rounded-xl bg-warm-100/70 border border-warm-200/60 text-xs font-medium text-warm-800' },
+                  h(SvgIcon, { name: 'sun', className: 'w-4 h-4 text-terracotta-600' }),
+                  h('span', null, 'Adaptive Split Layout')
+                )
+              )
+            ),
+            h('div', { className: 'relative z-10 pt-4 border-t border-warm-200/70 flex items-center justify-between text-xs text-warm-600' },
+              h('div', { className: 'flex items-center gap-2' },
+                h('span', { className: 'w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse' }),
+                h('span', null, 'Demo Environment Ready')
+              ),
+              h('span', { className: 'text-[11px] text-warm-500' }, 'Browser Local Storage')
+            )
+          );
+        }
+
+        // --- LOGIN FORM COMPONENT ---
+        function LoginForm({ onLoginSuccess, onSwitchToRegister, storedUsers }) {
+          const [email, setEmail] = useState('');
+          const [password, setPassword] = useState('');
+          const [showPwd, setShowPwd] = useState(false);
+          const [error, setError] = useState('');
+          const [isLoading, setIsLoading] = useState(false);
+
+          async function handleSubmit(e) {
+            e.preventDefault();
+            setError('');
+            if (!email) { setError('Email address is required.'); return; }
+            if (!password) { setError('Password is required.'); return; }
+
+            setIsLoading(true);
+            await new Promise(r => setTimeout(r, 300));
+
+            const user = findUserByEmail(email);
+            if (!user) {
+              setError('No account found with this email. Please create an account first.');
+              setIsLoading(false);
+              return;
+            }
+
+            const ok = await verifyPassword(password, user.salt, user.passwordHash);
+            if (!ok) {
+              setError('Incorrect password. Please verify and try again.');
+              setIsLoading(false);
+              return;
+            }
+
+            setIsLoading(false);
+            onLoginSuccess(user);
+          }
+
+          return h('div', { className: 'w-full' },
+            h('div', { className: 'mb-6' },
+              h('h2', { className: 'font-serif text-2xl sm:text-3xl font-semibold text-warm-900 mb-2' }, 'Welcome back'),
+              h('p', { className: 'text-sm text-warm-600' }, 'Enter your credentials to sign in to your Morrow workspace.')
+            ),
+            error && h('div', { className: 'mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-medium animate-fadeIn' },
+              error,
+              error.includes('create an account') && h('button', {
+                type: 'button',
+                onClick: () => onSwitchToRegister(email),
+                className: 'block mt-1 font-semibold text-terracotta-700 underline'
+              }, 'Go to Registration →')
+            ),
+            h('form', { onSubmit: handleSubmit, className: 'space-y-4' },
+              h('div', null,
+                h('label', { className: 'block text-xs font-semibold uppercase text-warm-700 mb-1.5' }, 'Email Address'),
+                h('div', { className: 'relative' },
+                  h('div', { className: 'absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-warm-400' },
+                    h(SvgIcon, { name: 'mail', className: 'w-4 h-4' })
+                  ),
+                  h('input', {
+                    type: 'email',
+                    value: email,
+                    onChange: e => setEmail(e.target.value),
+                    placeholder: 'you@example.com',
+                    className: 'w-full pl-10 pr-4 py-2.5 bg-white border border-warm-200 rounded-xl text-sm focus:outline-none focus:border-terracotta-500'
+                  })
+                )
+              ),
+              h('div', null,
+                h('div', { className: 'flex justify-between items-center mb-1.5' },
+                  h('label', { className: 'block text-xs font-semibold uppercase text-warm-700' }, 'Password'),
+                  h('span', { className: 'text-xs text-warm-400' }, 'Demo local auth')
+                ),
+                h('div', { className: 'relative' },
+                  h('div', { className: 'absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-warm-400' },
+                    h(SvgIcon, { name: 'lock', className: 'w-4 h-4' })
+                  ),
+                  h('input', {
+                    type: showPwd ? 'text' : 'password',
+                    value: password,
+                    onChange: e => setPassword(e.target.value),
+                    placeholder: '••••••••',
+                    className: 'w-full pl-10 pr-11 py-2.5 bg-white border border-warm-200 rounded-xl text-sm focus:outline-none focus:border-terracotta-500'
+                  }),
+                  h('button', {
+                    type: 'button',
+                    onClick: () => setShowPwd(!showPwd),
+                    className: 'absolute inset-y-0 right-0 pr-3.5 flex items-center text-warm-400 hover:text-warm-600'
+                  }, h(SvgIcon, { name: showPwd ? 'eye-off' : 'eye', className: 'w-4 h-4' }))
+                )
+              ),
+              h('button', {
+                type: 'submit',
+                disabled: isLoading,
+                className: 'w-full mt-2 py-3 px-4 rounded-xl bg-terracotta-600 hover:bg-terracotta-700 text-white font-medium text-sm transition-all shadow-md shadow-terracotta-600/20'
+              }, isLoading ? 'Verifying with Web Crypto...' : 'Sign In')
+            ),
+            storedUsers && storedUsers.length > 0 && h('div', { className: 'mt-6 pt-5 border-t border-warm-200' },
+              h('p', { className: 'text-xs text-warm-500 mb-2 font-medium' }, 'Demo accounts saved in this browser:'),
+              h('div', { className: 'flex flex-wrap gap-2' },
+                storedUsers.slice(0, 3).map(u =>
+                  h('button', {
+                    key: u.id,
+                    type: 'button',
+                    onClick: () => { setEmail(u.email); setError(''); },
+                    className: 'text-xs px-2.5 py-1 rounded-lg bg-warm-100 hover:bg-warm-200 text-warm-700 border border-warm-200 transition-colors'
+                  }, u.name + ' (' + u.email + ')')
+                )
+              )
+            ),
+            h('div', { className: 'mt-6 text-center text-xs text-warm-600' },
+              'Don\'t have an account yet? ',
+              h('button', {
+                type: 'button',
+                onClick: () => onSwitchToRegister(),
+                className: 'font-semibold text-terracotta-700 hover:underline'
+              }, 'Create demo account →')
+            )
+          );
+        }
+
+        // --- REGISTER FORM COMPONENT ---
+        function RegisterForm({ onRegisterSuccess, onSwitchToLogin, initialEmail = '' }) {
+          const [name, setName] = useState('');
+          const [email, setEmail] = useState(initialEmail);
+          const [password, setPassword] = useState('');
+          const [confirmPassword, setConfirmPassword] = useState('');
+          const [showPwd, setShowPwd] = useState(false);
+          const [error, setError] = useState('');
+          const [isLoading, setIsLoading] = useState(false);
+
+          const strength = evaluatePasswordStrength(password);
+          const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
+
+          async function handleSubmit(e) {
+            e.preventDefault();
+            setError('');
+            if (!name || name.trim().length < 2) { setError('Please enter your full name (at least 2 characters).'); return; }
+            if (!email || !isValidEmail(email)) { setError('Please enter a valid email address.'); return; }
+            if (!password || password.length < 8) { setError('Password must be at least 8 characters long.'); return; }
+            if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+
+            setIsLoading(true);
+            await new Promise(r => setTimeout(r, 350));
+
+            const existing = findUserByEmail(email);
+            if (existing) {
+              setError('An account with this email already exists. Please sign in instead.');
+              setIsLoading(false);
+              return;
+            }
+
+            const salt = generateSalt();
+            const passwordHash = await hashPassword(password, salt);
+
+            const newUser = saveNewUser({ name, email, salt, passwordHash });
+            setIsLoading(false);
+            onRegisterSuccess(newUser);
+          }
+
+          return h('div', { className: 'w-full' },
+            h('div', { className: 'mb-6' },
+              h('h2', { className: 'font-serif text-2xl sm:text-3xl font-semibold text-warm-900 mb-2' }, 'Create an account'),
+              h('p', { className: 'text-sm text-warm-600' }, 'Join Morrow and create your focused, warm workspace.')
+            ),
+            error && h('div', { className: 'mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-medium animate-fadeIn' },
+              error,
+              error.includes('already exists') && h('button', {
+                type: 'button',
+                onClick: () => onSwitchToLogin(email),
+                className: 'block mt-1 font-semibold text-terracotta-700 underline'
+              }, 'Sign in with this account →')
+            ),
+            h('form', { onSubmit: handleSubmit, className: 'space-y-4' },
+              h('div', null,
+                h('label', { className: 'block text-xs font-semibold uppercase text-warm-700 mb-1.5' }, 'Full Name'),
+                h('div', { className: 'relative' },
+                  h('div', { className: 'absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-warm-400' },
+                    h(SvgIcon, { name: 'user', className: 'w-4 h-4' })
+                  ),
+                  h('input', {
+                    type: 'text',
+                    value: name,
+                    onChange: e => setName(e.target.value),
+                    placeholder: 'Eleanor Vance',
+                    className: 'w-full pl-10 pr-4 py-2.5 bg-white border border-warm-200 rounded-xl text-sm focus:outline-none focus:border-terracotta-500'
+                  })
+                )
+              ),
+              h('div', null,
+                h('label', { className: 'block text-xs font-semibold uppercase text-warm-700 mb-1.5' }, 'Email Address'),
+                h('div', { className: 'relative' },
+                  h('div', { className: 'absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-warm-400' },
+                    h(SvgIcon, { name: 'mail', className: 'w-4 h-4' })
+                  ),
+                  h('input', {
+                    type: 'email',
+                    value: email,
+                    onChange: e => setEmail(e.target.value),
+                    placeholder: 'eleanor@example.com',
+                    className: 'w-full pl-10 pr-4 py-2.5 bg-white border border-warm-200 rounded-xl text-sm focus:outline-none focus:border-terracotta-500'
+                  })
+                )
+              ),
+              h('div', null,
+                h('label', { className: 'block text-xs font-semibold uppercase text-warm-700 mb-1.5' }, 'Password'),
+                h('div', { className: 'relative' },
+                  h('div', { className: 'absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-warm-400' },
+                    h(SvgIcon, { name: 'lock', className: 'w-4 h-4' })
+                  ),
+                  h('input', {
+                    type: showPwd ? 'text' : 'password',
+                    value: password,
+                    onChange: e => setPassword(e.target.value),
+                    placeholder: 'Create a password (8+ chars)',
+                    className: 'w-full pl-10 pr-11 py-2.5 bg-white border border-warm-200 rounded-xl text-sm focus:outline-none focus:border-terracotta-500'
+                  }),
+                  h('button', {
+                    type: 'button',
+                    onClick: () => setShowPwd(!showPwd),
+                    className: 'absolute inset-y-0 right-0 pr-3.5 flex items-center text-warm-400 hover:text-warm-600'
+                  }, h(SvgIcon, { name: showPwd ? 'eye-off' : 'eye', className: 'w-4 h-4' }))
+                ),
+                password.length > 0 && h('div', { className: 'mt-2.5 p-3 rounded-xl bg-warm-100/60 border border-warm-200 text-xs' },
+                  h('div', { className: 'flex justify-between items-center mb-1.5' },
+                    h('span', { className: 'text-warm-600 font-medium' }, 'Password Strength:'),
+                    h('span', { className: 'font-semibold ' + strength.textCol }, strength.label)
+                  ),
+                  h('div', { className: 'grid grid-cols-4 gap-1.5 h-1.5 mb-2' },
+                    [1, 2, 3, 4].map(s => h('div', {
+                      key: s,
+                      className: 'h-full rounded-full transition-all ' + (strength.score >= s ? strength.color : 'bg-warm-200')
+                    }))
+                  ),
+                  h('div', { className: 'grid grid-cols-2 gap-1 text-[11px] text-warm-600' },
+                    h('span', { className: strength.rules.length ? 'text-emerald-700 font-medium' : 'text-warm-500' }, (strength.rules.length ? '✓' : '•') + ' 8+ characters'),
+                    h('span', { className: (strength.rules.lower && strength.rules.upper) ? 'text-emerald-700 font-medium' : 'text-warm-500' }, ((strength.rules.lower && strength.rules.upper) ? '✓' : '•') + ' Upper & lowercase'),
+                    h('span', { className: strength.rules.num ? 'text-emerald-700 font-medium' : 'text-warm-500' }, (strength.rules.num ? '✓' : '•') + ' At least 1 number'),
+                    h('span', { className: strength.rules.sym ? 'text-emerald-700 font-medium' : 'text-warm-500' }, (strength.rules.sym ? '✓' : '•') + ' At least 1 symbol')
+                  )
+                )
+              ),
+              h('div', null,
+                h('label', { className: 'block text-xs font-semibold uppercase text-warm-700 mb-1.5' }, 'Confirm Password'),
+                h('div', { className: 'relative' },
+                  h('div', { className: 'absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-warm-400' },
+                    h(SvgIcon, { name: 'lock', className: 'w-4 h-4' })
+                  ),
+                  h('input', {
+                    type: showPwd ? 'text' : 'password',
+                    value: confirmPassword,
+                    onChange: e => setConfirmPassword(e.target.value),
+                    placeholder: 'Re-enter your password',
+                    className: 'w-full pl-10 pr-4 py-2.5 bg-white border border-warm-200 rounded-xl text-sm focus:outline-none focus:border-terracotta-500'
+                  })
+                ),
+                passwordsMatch && h('p', { className: 'mt-1 text-xs text-emerald-700 font-medium' }, '✓ Passwords match!')
+              ),
+              h('button', {
+                type: 'submit',
+                disabled: isLoading,
+                className: 'w-full mt-2 py-3 px-4 rounded-xl bg-terracotta-600 hover:bg-terracotta-700 text-white font-medium text-sm transition-all shadow-md shadow-terracotta-600/20'
+              }, isLoading ? 'Hashing with Web Crypto...' : 'Create Morrow Account')
+            ),
+            h('div', { className: 'mt-6 text-center text-xs text-warm-600' },
+              'Already have an account? ',
+              h('button', {
+                type: 'button',
+                onClick: () => onSwitchToLogin(email),
+                className: 'font-semibold text-terracotta-700 hover:underline'
+              }, 'Sign in here →')
+            )
+          );
+        }
+
+        // --- DASHBOARD COMPONENT ---
+        function Dashboard({ user, onSignOut, onClearData }) {
+          const [currentUser, setCurrentUser] = useState(user);
+          const [newTodo, setNewTodo] = useState('');
+          const [showInspector, setShowInspector] = useState(false);
+
+          function handleAddTodo(e) {
+            e.preventDefault();
+            if (!newTodo.trim()) return;
+            const item = { id: 'td_' + Date.now(), text: newTodo.trim(), completed: false };
+            const updated = updateUser(currentUser.id, { todos: [...(currentUser.todos || []), item] });
+            if (updated) { setCurrentUser(updated); setNewTodo(''); }
+          }
+
+          function handleToggleTodo(id) {
+            const updatedTodos = (currentUser.todos || []).map(t => t.id === id ? Object.assign({}, t, { completed: !t.completed }) : t);
+            const updated = updateUser(currentUser.id, { todos: updatedTodos });
+            if (updated) setCurrentUser(updated);
+          }
+
+          function handleDeleteTodo(id) {
+            const updatedTodos = (currentUser.todos || []).filter(t => t.id !== id);
+            const updated = updateUser(currentUser.id, { todos: updatedTodos });
+            if (updated) setCurrentUser(updated);
+          }
+
+          const storedUsers = getStoredUsers();
+
+          return h('div', { className: 'min-h-screen bg-[#FAF7F2] text-warm-900 font-sans flex flex-col' },
+            // Top Nav
+            h('header', { className: 'border-b border-warm-200 bg-white/70 backdrop-blur-md sticky top-0 z-30' },
+              h('div', { className: 'max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between' },
+                h('div', { className: 'flex items-center gap-3' },
+                  h('div', { className: 'w-9 h-9 rounded-xl bg-gradient-to-tr from-terracotta-600 to-terracotta-400 flex items-center justify-center text-white shadow-sm' },
+                    h(SvgIcon, { name: 'sun', className: 'w-5 h-5 stroke-[2.2]' })
+                  ),
+                  h('span', { className: 'font-serif text-xl font-bold tracking-tight text-warm-900' }, 'Morrow'),
+                  h('span', { className: 'hidden sm:inline-block ml-2 text-[11px] uppercase tracking-wider font-semibold text-terracotta-700 bg-terracotta-50 px-2 py-0.5 rounded-full border border-terracotta-200' }, 'Workspace')
+                ),
+                h('div', { className: 'flex items-center gap-3' },
+                  h('div', { className: 'flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-warm-100 border border-warm-200 text-xs' },
+                    h('span', { className: 'w-6 h-6 rounded-full flex items-center justify-center text-white font-semibold text-[11px]', style: { backgroundColor: currentUser.avatarColor || '#D56D52' } },
+                      (currentUser.name || 'U').charAt(0).toUpperCase()
+                    ),
+                    h('span', { className: 'font-medium text-warm-800 hidden sm:inline' }, currentUser.name)
+                  ),
+                  h('button', {
+                    onClick: onSignOut,
+                    className: 'py-1.5 px-3 rounded-lg border border-warm-200 hover:bg-warm-50 text-warm-700 text-xs font-medium flex items-center gap-1.5 transition-all'
+                  }, h(SvgIcon, { name: 'logout', className: 'w-3.5 h-3.5' }), h('span', null, 'Sign Out'))
+                )
+              )
+            ),
+            // Main Content
+            h('main', { className: 'flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-8' },
+              // Banner
+              h('div', { className: 'rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#F5EDE3] via-[#FAF5EE] to-[#EFE2D3] border border-warm-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6' },
+                h('div', null,
+                  h('span', { className: 'text-xs font-semibold text-terracotta-700 uppercase tracking-wider block mb-1' }, 'Workspace Dashboard'),
+                  h('h1', { className: 'font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-warm-900 mb-2' }, 'Good morning, ' + (currentUser.name.split(' ')[0])),
+                  h('p', { className: 'text-sm text-warm-700 max-w-xl' }, 'Welcome to your calm workspace. Passwords are encrypted natively with the Web Crypto API and saved to this browser.')
+                ),
+                h('div', { className: 'flex gap-3' },
+                  h('div', { className: 'bg-white/80 p-4 rounded-2xl border border-white/60 shadow-sm text-center min-w-[120px]' },
+                    h('span', { className: 'text-xs text-warm-500 font-medium block' }, 'Security'),
+                    h('span', { className: 'text-sm font-semibold text-warm-900 block' }, 'SHA-256'),
+                    h('span', { className: 'text-[11px] text-warm-400' }, 'Salted Hash')
+                  ),
+                  h('div', { className: 'bg-white/80 p-4 rounded-2xl border border-white/60 shadow-sm text-center min-w-[120px]' },
+                    h('span', { className: 'text-xs text-warm-500 font-medium block' }, 'Storage'),
+                    h('span', { className: 'text-sm font-semibold text-warm-900 block' }, storedUsers.length + (storedUsers.length === 1 ? ' Account' : ' Accounts')),
+                    h('span', { className: 'text-[11px] text-warm-400' }, 'Local Browser')
+                  )
+                )
+              ),
+              // Grid
+              h('div', { className: 'grid grid-cols-1 lg:grid-cols-3 gap-8' },
+                // Intentions Checklist (2 cols)
+                h('div', { className: 'lg:col-span-2 space-y-6' },
+                  h('div', { className: 'bg-white rounded-2xl p-6 border border-warm-200 shadow-sm' },
+                    h('div', { className: 'flex justify-between items-center mb-5' },
+                      h('h2', { className: 'font-serif text-xl font-semibold text-warm-900' }, 'Today\'s Intentions'),
+                      h('span', { className: 'text-xs font-semibold px-2.5 py-1 rounded-full bg-warm-100 text-warm-700' },
+                        ((currentUser.todos || []).filter(t => t.completed).length) + ' of ' + ((currentUser.todos || []).length) + ' completed'
+                      )
+                    ),
+                    h('form', { onSubmit: handleAddTodo, className: 'flex gap-2 mb-5' },
+                      h('input', {
+                        type: 'text',
+                        value: newTodo,
+                        onChange: e => setNewTodo(e.target.value),
+                        placeholder: 'Add a new intention or task...',
+                        className: 'flex-1 px-4 py-2.5 bg-warm-50/60 border border-warm-200 rounded-xl text-sm focus:outline-none focus:border-terracotta-500'
+                      }),
+                      h('button', {
+                        type: 'submit',
+                        className: 'py-2.5 px-4 rounded-xl bg-terracotta-600 hover:bg-terracotta-700 text-white font-medium text-sm flex items-center gap-1.5'
+                      }, h(SvgIcon, { name: 'plus', className: 'w-4 h-4' }), h('span', null, 'Add'))
+                    ),
+                    h('div', { className: 'space-y-2' },
+                      (currentUser.todos || []).map(t =>
+                        h('div', {
+                          key: t.id,
+                          className: 'flex items-center justify-between p-3 rounded-xl border ' + (t.completed ? 'bg-warm-50/80 border-warm-200/70 text-warm-400' : 'bg-white border-warm-200 text-warm-800')
+                        },
+                          h('button', {
+                            type: 'button',
+                            onClick: () => handleToggleTodo(t.id),
+                            className: 'flex items-center gap-3 flex-1 text-left'
+                          },
+                            h(SvgIcon, { name: t.completed ? 'check-circle' : 'circle', className: 'w-5 h-5 ' + (t.completed ? 'text-emerald-600' : 'text-warm-300') }),
+                            h('span', { className: 'text-sm ' + (t.completed ? 'line-through text-warm-400' : 'font-medium') }, t.text)
+                          ),
+                          h('button', {
+                            type: 'button',
+                            onClick: () => handleDeleteTodo(t.id),
+                            className: 'text-warm-300 hover:text-rose-500 p-1 rounded-lg'
+                          }, h(SvgIcon, { name: 'trash', className: 'w-4 h-4' }))
+                        )
+                      )
+                    )
+                  ),
+                  // Web Crypto Inspector
+                  h('div', { className: 'bg-white rounded-2xl p-6 border border-warm-200 shadow-sm' },
+                    h('div', { className: 'flex justify-between items-center mb-4' },
+                      h('div', { className: 'flex items-center gap-2' },
+                        h(SvgIcon, { name: 'key', className: 'w-5 h-5 text-terracotta-600' }),
+                        h('h3', { className: 'font-serif text-lg font-semibold text-warm-900' }, 'Web Crypto & Storage Inspector')
+                      ),
+                      h('button', {
+                        type: 'button',
+                        onClick: () => setShowInspector(!showInspector),
+                        className: 'text-xs font-semibold text-terracotta-700 bg-terracotta-50 hover:bg-terracotta-100 px-3 py-1.5 rounded-lg'
+                      }, showInspector ? 'Hide Raw Details' : 'Inspect Credentials')
+                    ),
+                    showInspector ? h('div', { className: 'p-4 rounded-xl bg-warm-50 border border-warm-200 font-mono text-xs space-y-2.5 overflow-x-auto animate-fadeIn' },
+                      h('div', null, h('span', { className: 'text-warm-500 select-none block' }, '// User ID:'), h('span', { className: 'text-warm-900' }, currentUser.id)),
+                      h('div', null, h('span', { className: 'text-warm-500 select-none block' }, '// Email:'), h('span', { className: 'text-warm-900' }, currentUser.email)),
+                      h('div', null, h('span', { className: 'text-warm-500 select-none block' }, '// 16-byte Cryptographic Salt:'), h('span', { className: 'text-terracotta-700 break-all' }, currentUser.salt || 'N/A')),
+                      h('div', null, h('span', { className: 'text-warm-500 select-none block' }, '// Stored SHA-256 Hash:'), h('span', { className: 'text-emerald-700 break-all' }, currentUser.passwordHash || 'N/A'))
+                    ) : h('p', { className: 'text-xs text-warm-600 leading-relaxed' },
+                      'Notice that your password was combined with a cryptographic salt and hashed before being saved. Click Inspect Credentials to verify the raw hash.'
+                    )
+                  )
+                ),
+                // Profile & Notice (1 col)
+                h('div', { className: 'space-y-6' },
+                  h('div', { className: 'bg-white rounded-2xl p-6 border border-warm-200 shadow-sm text-center' },
+                    h('div', {
+                      className: 'w-16 h-16 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-serif font-bold shadow-md mb-3',
+                      style: { backgroundColor: currentUser.avatarColor || '#D56D52' }
+                    }, (currentUser.name || 'U').charAt(0).toUpperCase()),
+                    h('h3', { className: 'font-serif text-lg font-semibold text-warm-900' }, currentUser.name),
+                    h('p', { className: 'text-xs text-warm-500 mt-0.5' }, currentUser.email),
+                    h('p', { className: 'text-xs text-warm-600 mt-3 italic' }, '“' + (currentUser.bio || 'Productive creator focusing on calm mornings.') + '”')
+                  ),
+                  h('div', { className: 'bg-amber-50/70 border border-amber-200 rounded-2xl p-5 text-xs text-amber-900 space-y-2' },
+                    h('p', { className: 'font-semibold' }, 'Learning Demo Architecture'),
+                    h('p', { className: 'leading-relaxed text-amber-800' },
+                      'Browser storage can be inspected or cleared by the user. Do not use real passwords.'
+                    ),
+                    h('button', {
+                      type: 'button',
+                      onClick: onClearData,
+                      className: 'w-full mt-2 py-2 px-3 rounded-lg bg-white text-rose-700 border border-rose-200 font-semibold text-xs'
+                    }, 'Reset & Clear All Demo Data')
+                  )
+                )
+              )
+            ),
+            h('footer', { className: 'border-t border-warm-200 py-6 text-center text-xs text-warm-500 bg-white/50' },
+              h('p', null, 'Morrow Demo Application • Built with React & Web Crypto API')
+            )
+          );
+        }
+
+        // --- ROOT APP CONTAINER ---
+        function App() {
+          const [currentUser, setCurrentUser] = useState(null);
+          const [activeTab, setActiveTab] = useState('register');
+          const [emailTransfer, setEmailTransfer] = useState('');
+          const [storedUsers, setStoredUsers] = useState([]);
+
+          useEffect(() => {
+            const session = getCurrentSession();
+            if (session) setCurrentUser(session);
+            const users = getStoredUsers();
+            setStoredUsers(users);
+            if (users.length > 0 && !session) setActiveTab('login');
+          }, []);
+
+          function handleLoginSuccess(user) {
+            setCurrentSession(user);
+            setCurrentUser(user);
+          }
+
+          function handleRegisterSuccess(user) {
+            setCurrentSession(user);
+            setCurrentUser(user);
+            setStoredUsers(getStoredUsers());
+          }
+
+          function handleSignOut() {
+            clearCurrentSession();
+            setCurrentUser(null);
+            setStoredUsers(getStoredUsers());
+            setActiveTab('login');
+          }
+
+          function handleClearData() {
+            if (confirm('Clear all saved accounts and sessions from this browser?')) {
+              clearAllData();
+              setCurrentUser(null);
+              setStoredUsers([]);
+              setActiveTab('register');
+            }
+          }
+
+          if (currentUser) {
+            return h(Dashboard, {
+              user: currentUser,
+              onSignOut: handleSignOut,
+              onClearData: handleClearData
+            });
+          }
+
+          return h('div', { className: 'min-h-screen bg-[#FAF7F2] flex flex-col justify-between selection:bg-terracotta-200' },
+            h('div', { className: 'flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-10' },
+              h('div', { className: 'w-full max-w-5xl bg-white rounded-3xl shadow-lg border border-warm-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]' },
+                // Split Left (7 cols)
+                h('div', { className: 'lg:col-span-7 flex flex-col' },
+                  h(BrandHero, null)
+                ),
+                // Split Right (5 cols)
+                h('div', { className: 'lg:col-span-5 p-6 sm:p-10 flex flex-col justify-between bg-white' },
+                  h('div', null,
+                    h('div', { className: 'flex rounded-xl bg-warm-100/80 p-1 mb-8 border border-warm-200/60' },
+                      h('button', {
+                        type: 'button',
+                        onClick: () => setActiveTab('login'),
+                        className: 'flex-1 py-2 text-xs font-semibold rounded-lg transition-all ' + (activeTab === 'login' ? 'bg-white text-warm-900 shadow-sm' : 'text-warm-600')
+                      }, 'Sign In'),
+                      h('button', {
+                        type: 'button',
+                        onClick: () => setActiveTab('register'),
+                        className: 'flex-1 py-2 text-xs font-semibold rounded-lg transition-all ' + (activeTab === 'register' ? 'bg-white text-warm-900 shadow-sm' : 'text-warm-600')
+                      }, 'Create Account')
+                    ),
+                    activeTab === 'login'
+                      ? h(LoginForm, {
+                          onLoginSuccess: handleLoginSuccess,
+                          onSwitchToRegister: (em) => { if (em) setEmailTransfer(em); setActiveTab('register'); },
+                          storedUsers: storedUsers
+                        })
+                      : h(RegisterForm, {
+                          onRegisterSuccess: handleRegisterSuccess,
+                          onSwitchToLogin: (em) => { if (em) setEmailTransfer(em); setActiveTab('login'); },
+                          initialEmail: emailTransfer
+                        })
+                  ),
+                  h('div', { className: 'mt-8 pt-4 border-t border-warm-100 text-center' },
+                    h('p', { className: 'text-[11px] text-warm-500' }, 'Saved directly in this browser\'s localStorage')
+                  )
+                )
+              )
+            ),
+            h('footer', { className: 'w-full max-w-5xl mx-auto px-4 pb-6 text-center text-xs text-warm-500' },
+              h('p', null, 'Important: This is a front-end learning demo. Passwords are encrypted before saving.')
+            )
+          );
+        }
+
+        // Render application
+        ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+      })();
+    </script>
+  </body>
+</html>

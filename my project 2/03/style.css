@@ -1,0 +1,565 @@
+/* ══════════════════════════════════════════════
+   NEXUS REGISTRATION — style.css
+   ══════════════════════════════════════════════ */
+
+/* ── 1. CSS Custom Properties ─────────────────── */
+:root {
+  /* Brand */
+  --brand-from:   #1a0533;
+  --brand-mid:    #3b1275;
+  --brand-to:     #6c2eb9;
+  --brand-accent: #a855f7;
+
+  /* Neutrals */
+  --white:        #ffffff;
+  --bg:           #f9f9fb;
+  --surface:      #ffffff;
+  --border:       #e2e2e8;
+  --border-focus: #7c3aed;
+  --text-primary: #111827;
+  --text-muted:   #6b7280;
+  --placeholder:  #9ca3af;
+
+  /* Feedback */
+  --red:          #dc2626;
+  --red-light:    #fef2f2;
+  --green:        #16a34a;
+  --green-light:  #f0fdf4;
+  --orange:       #ea580c;
+  --yellow:       #ca8a04;
+
+  /* Strength bar colours */
+  --bar-weak:     #dc2626;
+  --bar-fair:     #ea580c;
+  --bar-good:     #ca8a04;
+  --bar-strong:   #16a34a;
+
+  /* Spacing & radius */
+  --radius-sm:    6px;
+  --radius-md:    10px;
+  --radius-lg:    16px;
+  --gap:          20px;
+
+  /* Typography */
+  --font:         'Inter', system-ui, sans-serif;
+}
+
+/* ── 2. Reset ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+}
+
+/* ── 3. Brand Panel ───────────────────────────── */
+.brand-panel {
+  position: relative;
+  background: linear-gradient(160deg, var(--brand-from) 0%, var(--brand-mid) 50%, var(--brand-to) 100%);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 48px 40px;
+}
+
+/* Soft glowing orbs */
+.brand-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.brand-glow--1 {
+  width: 320px; height: 320px;
+  background: #a855f7;
+  top: -80px; left: -60px;
+}
+.brand-glow--2 {
+  width: 240px; height: 240px;
+  background: #818cf8;
+  bottom: -60px; right: -40px;
+}
+
+.brand-content { position: relative; z-index: 1; max-width: 340px; }
+
+/* Logo */
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+.brand-logo svg { width: 40px; height: 40px; }
+.brand-logo span {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--white);
+}
+
+/* Heading */
+.brand-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 14px;
+  letter-spacing: -0.5px;
+}
+
+.brand-sub {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 36px;
+}
+
+/* Perks list */
+.brand-perks {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 48px;
+}
+.brand-perks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.88);
+  line-height: 1.5;
+}
+.perk-icon {
+  color: var(--brand-accent);
+  font-size: 0.85rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Footer link */
+.brand-footer {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.7);
+}
+.brand-link {
+  color: var(--brand-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+.brand-link:hover { text-decoration: underline; }
+
+/* ── 4. Form Panel ────────────────────────────── */
+.form-panel {
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px 60px;
+  overflow-y: auto;
+}
+
+/* ── 5. Tab Bar ───────────────────────────────── */
+.tab-bar {
+  position: relative;
+  display: flex;
+  gap: 0;
+  width: 100%;
+  max-width: 640px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 14px 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-family: var(--font);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s;
+  position: relative;
+  z-index: 1;
+}
+.tab-btn.active { color: var(--border-focus); }
+.tab-btn:hover:not(.active) { color: var(--text-primary); }
+
+.tab-underline {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 50%;
+  height: 2px;
+  background: var(--border-focus);
+  border-radius: 2px 2px 0 0;
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+  transform: translateX(0);
+}
+
+/* ── 6. Status Banner ─────────────────────────── */
+.status-banner {
+  width: 100%;
+  max-width: 640px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.status-banner.success {
+  background: var(--green-light);
+  color: var(--green);
+  border: 1px solid #bbf7d0;
+}
+.status-banner.error {
+  background: var(--red-light);
+  color: var(--red);
+  border: 1px solid #fecaca;
+}
+
+/* ── 7. Auth Form ─────────────────────────────── */
+.auth-form {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+.auth-form.hidden { display: none; }
+
+.form-header { margin-bottom: 4px; }
+.form-header h2 {
+  font-size: 1.625rem;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.form-header p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* ── 8. Field Layout ──────────────────────────── */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field-group.full-width { grid-column: 1 / -1; }
+
+/* ── 9. Labels ────────────────────────────────── */
+label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.required { color: var(--red); margin-left: 2px; }
+
+/* ── 10. Inputs ───────────────────────────────── */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+input[type="date"],
+select {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+input::placeholder { color: var(--placeholder); }
+
+input:focus,
+select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+}
+
+/* Invalid state */
+input.invalid,
+select.invalid {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.10);
+}
+
+/* Date input icon tint */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+/* ── 11. Select Wrapper ───────────────────────── */
+.select-wrapper {
+  position: relative;
+}
+.select-wrapper select { padding-right: 40px; cursor: pointer; }
+.select-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+/* ── 12. Password Wrapper ─────────────────────── */
+.pw-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.pw-wrapper input { padding-right: 68px; }
+.pw-toggle {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  padding: 0 12px;
+  background: var(--bg);
+  border: none;
+  border-left: 1.5px solid var(--border);
+  border-radius: 0 calc(var(--radius-sm) - 1px) calc(var(--radius-sm) - 1px) 0;
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.pw-toggle:hover { color: var(--border-focus); background: rgba(124,58,237,0.06); }
+
+/* ── 13. Strength Meter ───────────────────────── */
+.strength-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
+}
+.strength-bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+.bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background 0.3s;
+}
+.strength-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Bar colour states */
+.bar.weak   { background: var(--bar-weak); }
+.bar.fair   { background: var(--bar-fair); }
+.bar.good   { background: var(--bar-good); }
+.bar.strong { background: var(--bar-strong); }
+
+/* ── 14. Gender Fieldset ──────────────────────── */
+.gender-fieldset {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+.gender-fieldset.invalid { border-color: var(--red); }
+.gender-fieldset legend {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  padding: 0 4px;
+}
+
+.gender-options {
+  display: flex;
+  gap: 28px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* Custom radio */
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+.radio-label input[type="radio"] { display: none; }
+.radio-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+}
+.radio-label input[type="radio"]:checked + .radio-custom {
+  border-color: var(--border-focus);
+}
+.radio-label input[type="radio"]:checked + .radio-custom::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--border-focus);
+  border-radius: 50%;
+}
+
+/* ── 15. Custom Checkbox ──────────────────────── */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 400;
+  line-height: 1.5;
+}
+.checkbox-label input[type="checkbox"] { display: none; }
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+  background: var(--border-focus);
+  border-color: var(--border-focus);
+}
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+  content: '';
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translateY(-1px);
+}
+.checkbox-custom.invalid-check { border-color: var(--red); }
+
+.terms-link {
+  color: var(--red);
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+/* Remember / Forgot row */
+.remember-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.forgot-link {
+  font-size: 0.875rem;
+  color: var(--border-focus);
+  font-weight: 500;
+  text-decoration: none;
+}
+.forgot-link:hover { text-decoration: underline; }
+
+/* ── 16. Error Spans ──────────────────────────── */
+.error {
+  font-size: 0.8rem;
+  color: var(--red);
+  min-height: 16px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* ── 17. Submit Button ────────────────────────── */
+.btn-submit {
+  width: 100%;
+  height: 48px;
+  background: linear-gradient(135deg, #5b21b6, #7c3aed);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.25px;
+  transition: opacity 0.2s, transform 0.15s;
+  margin-top: 4px;
+  box-shadow: 0 4px 14px rgba(124,58,237,0.35);
+}
+.btn-submit:hover  { opacity: 0.92; transform: translateY(-1px); }
+.btn-submit:active { opacity: 1;    transform: translateY(0); }
+
+/* ── 18. Footer Note ──────────────────────────── */
+.form-footer-note {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--border-focus);
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+/* ── 19. Responsive ───────────────────────────── */
+@media (max-width: 880px) {
+  body { grid-template-columns: 1fr; }
+  .brand-panel { display: none; }
+  .form-panel { padding: 32px 16px 48px; }
+  .field-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .form-header h2 { font-size: 1.375rem; }
+  .gender-options { gap: 18px; }
+}
+
+/* ── 20. Scrollbar (webkit) ───────────────────── */
+.form-panel::-webkit-scrollbar { width: 6px; }
+.form-panel::-webkit-scrollbar-track { background: transparent; }
+.form-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }

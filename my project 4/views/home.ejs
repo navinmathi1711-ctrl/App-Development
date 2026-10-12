@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> | My Website</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <main class="container">
+
+    <section class="hero">
+      <h1>Welcome to MyWebsite 👋</h1>
+      <p class="subtitle">
+        A simple multi-page site served with <strong>Node.js</strong> and <strong>Express</strong>.
+      </p>
+      <div class="cta-group">
+        <a href="/about" class="btn btn-primary">Learn More</a>
+        <a href="/contact" class="btn btn-outline">Get in Touch</a>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="card">
+        <span class="icon">⚡</span>
+        <h3>Fast &amp; Lightweight</h3>
+        <p>Built on Node.js with Express — minimal overhead, maximum speed.</p>
+      </div>
+      <div class="card">
+        <span class="icon">📄</span>
+        <h3>Multi-Page Routing</h3>
+        <p>Clean URLs with server-side routing for Home, About, and Contact.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🛡️</span>
+        <h3>Server-Side Validation</h3>
+        <p>The contact form is validated on the server before any response is sent.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

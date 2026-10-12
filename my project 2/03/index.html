@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account – Register</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ════════════════  LEFT BRAND PANEL  ════════════════ -->
+  <aside class="brand-panel" aria-hidden="true">
+    <div class="brand-glow brand-glow--1"></div>
+    <div class="brand-glow brand-glow--2"></div>
+
+    <div class="brand-content">
+      <div class="brand-logo">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.15)"/>
+          <path d="M12 28L20 12L28 28H22L20 23L18 28H12Z" fill="white"/>
+        </svg>
+        <span>Nexus</span>
+      </div>
+
+      <h1 class="brand-heading">Join thousands of users today.</h1>
+      <p class="brand-sub">Create your free account in under two minutes and start exploring everything Nexus has to offer.</p>
+
+      <ul class="brand-perks" role="list">
+        <li>
+          <span class="perk-icon" aria-hidden="true">✦</span>
+          Secure end-to-end encrypted data
+        </li>
+        <li>
+          <span class="perk-icon" aria-hidden="true">✦</span>
+          No credit card required to sign up
+        </li>
+        <li>
+          <span class="perk-icon" aria-hidden="true">✦</span>
+          24/7 customer support included
+        </li>
+        <li>
+          <span class="perk-icon" aria-hidden="true">✦</span>
+          Free 30-day premium trial on sign-up
+        </li>
+      </ul>
+
+      <p class="brand-footer">Already have an account? <a href="#" class="brand-link" id="go-login-link">Log in</a></p>
+    </div>
+  </aside>
+
+  <!-- ════════════════  RIGHT FORM PANEL  ════════════════ -->
+  <main class="form-panel">
+
+    <!-- Tab bar -->
+    <div class="tab-bar" role="tablist" aria-label="Authentication forms">
+      <button class="tab-btn active" id="tab-signup" role="tab" aria-selected="true" aria-controls="form-signup">Sign up</button>
+      <button class="tab-btn"        id="tab-login"  role="tab" aria-selected="false" aria-controls="form-login">Log in</button>
+      <span class="tab-underline" id="tab-underline" aria-hidden="true"></span>
+    </div>
+
+    <!-- ───── STATUS BANNER ───── -->
+    <div class="status-banner" id="status-banner" role="alert" aria-live="polite" hidden></div>
+
+    <!-- ═══════════  SIGN-UP FORM  ═══════════ -->
+    <form id="form-signup" class="auth-form" role="tabpanel" aria-labelledby="tab-signup" novalidate>
+      <div class="form-header">
+        <h2>Create your account</h2>
+        <p>Please fill in the details below to complete your registration.</p>
+      </div>
+
+      <!-- Row 1: Full Name + Email -->
+      <div class="field-row">
+        <div class="field-group">
+          <label for="su-name">Full Name <span class="required" aria-hidden="true">*</span></label>
+          <input type="text" id="su-name" name="fullName" placeholder="e.g. John Doe"
+                 autocomplete="name" aria-required="true" aria-describedby="su-name-error" />
+          <span class="error" id="su-name-error" role="alert"></span>
+        </div>
+
+        <div class="field-group">
+          <label for="su-email">Email Address <span class="required" aria-hidden="true">*</span></label>
+          <input type="email" id="su-email" name="email" placeholder="e.g. john.doe@example.com"
+                 autocomplete="email" aria-required="true" aria-describedby="su-email-error" />
+          <span class="error" id="su-email-error" role="alert"></span>
+        </div>
+      </div>
+
+      <!-- Row 2: Phone + Date of Birth -->
+      <div class="field-row">
+        <div class="field-group">
+          <label for="su-phone">Phone Number <span class="required" aria-hidden="true">*</span></label>
+          <input type="tel" id="su-phone" name="phone" placeholder="10-digit mobile number"
+                 autocomplete="tel" maxlength="10" aria-required="true" aria-describedby="su-phone-error" />
+          <span class="error" id="su-phone-error" role="alert"></span>
+        </div>
+
+        <div class="field-group">
+          <label for="su-dob">Date of Birth <span class="required" aria-hidden="true">*</span></label>
+          <input type="date" id="su-dob" name="dob" placeholder="dd-mm-yyyy"
+                 aria-required="true" aria-describedby="su-dob-error" />
+          <span class="error" id="su-dob-error" role="alert"></span>
+        </div>
+      </div>
+
+      <!-- Row 3: Gender (full width) -->
+      <div class="field-group full-width">
+        <fieldset class="gender-fieldset">
+          <legend>Gender <span class="required" aria-hidden="true">*</span></legend>
+          <div class="gender-options">
+            <label class="radio-label">
+              <input type="radio" name="gender" value="male" />
+              <span class="radio-custom" aria-hidden="true"></span>
+              Male
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="gender" value="female" />
+              <span class="radio-custom" aria-hidden="true"></span>
+              Female
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="gender" value="other" />
+              <span class="radio-custom" aria-hidden="true"></span>
+              Other
+            </label>
+          </div>
+        </fieldset>
+        <span class="error" id="su-gender-error" role="alert"></span>
+      </div>
+
+      <!-- Row 4: Country (full width) -->
+      <div class="field-group full-width">
+        <label for="su-country">Country <span class="required" aria-hidden="true">*</span></label>
+        <div class="select-wrapper">
+          <select id="su-country" name="country" aria-required="true" aria-describedby="su-country-error">
+            <option value="">Select country</option>
+            <option value="IN">India</option>
+            <option value="US">United States</option>
+            <option value="GB">United Kingdom</option>
+            <option value="CA">Canada</option>
+            <option value="AU">Australia</option>
+            <option value="DE">Germany</option>
+            <option value="FR">France</option>
+            <option value="JP">Japan</option>
+            <option value="CN">China</option>
+            <option value="BR">Brazil</option>
+            <option value="ZA">South Africa</option>
+            <option value="SG">Singapore</option>
+            <option value="AE">United Arab Emirates</option>
+            <option value="NZ">New Zealand</option>
+            <option value="MX">Mexico</option>
+          </select>
+          <span class="select-arrow" aria-hidden="true">&#10094;</span>
+        </div>
+        <span class="error" id="su-country-error" role="alert"></span>
+      </div>
+
+      <!-- Row 5: Password + Confirm Password -->
+      <div class="field-row">
+        <div class="field-group">
+          <label for="su-password">Password <span class="required" aria-hidden="true">*</span></label>
+          <div class="pw-wrapper">
+            <input type="password" id="su-password" name="password"
+                   placeholder="Min. 8 chars, mixed case &amp; symbol"
+                   autocomplete="new-password" aria-required="true" aria-describedby="su-password-error" />
+            <button type="button" class="pw-toggle" aria-label="Show password" data-target="su-password">Show</button>
+          </div>
+          <!-- Strength meter -->
+          <div class="strength-meter" aria-hidden="true">
+            <div class="strength-bars">
+              <span class="bar" id="bar-1"></span>
+              <span class="bar" id="bar-2"></span>
+              <span class="bar" id="bar-3"></span>
+              <span class="bar" id="bar-4"></span>
+            </div>
+            <span class="strength-label" id="strength-label">Password strength: <strong id="strength-text">None</strong></span>
+          </div>
+          <span class="error" id="su-password-error" role="alert"></span>
+        </div>
+
+        <div class="field-group">
+          <label for="su-confirm">Confirm Password <span class="required" aria-hidden="true">*</span></label>
+          <div class="pw-wrapper">
+            <input type="password" id="su-confirm" name="confirmPassword"
+                   placeholder="Re-enter password"
+                   autocomplete="new-password" aria-required="true" aria-describedby="su-confirm-error" />
+            <button type="button" class="pw-toggle" aria-label="Show confirm password" data-target="su-confirm">Show</button>
+          </div>
+          <span class="error" id="su-confirm-error" role="alert"></span>
+        </div>
+      </div>
+
+      <!-- Row 6: PIN Code (full width) -->
+      <div class="field-group full-width">
+        <label for="su-pin">PIN Code <span class="required" aria-hidden="true">*</span></label>
+        <input type="text" id="su-pin" name="pinCode" placeholder="6-digit PIN / ZIP code"
+               maxlength="6" aria-required="true" aria-describedby="su-pin-error" />
+        <span class="error" id="su-pin-error" role="alert"></span>
+      </div>
+
+      <!-- Row 7: Terms checkbox -->
+      <div class="field-group full-width terms-row">
+        <label class="checkbox-label">
+          <input type="checkbox" id="su-terms" name="terms" aria-required="true" aria-describedby="su-terms-error" />
+          <span class="checkbox-custom" aria-hidden="true"></span>
+          I agree to the <a href="#" class="terms-link">Terms and Conditions</a>
+          <span class="required" aria-hidden="true">*</span>
+        </label>
+        <span class="error" id="su-terms-error" role="alert"></span>
+      </div>
+
+      <button type="submit" class="btn-submit">Create Account</button>
+
+      <p class="form-footer-note">
+        Already have an account?
+        <button type="button" class="link-btn" id="goto-login">Log in here</button>
+      </p>
+    </form>
+
+    <!-- ═══════════  LOG-IN FORM  ═══════════ -->
+    <form id="form-login" class="auth-form hidden" role="tabpanel" aria-labelledby="tab-login" novalidate>
+      <div class="form-header">
+        <h2>Welcome back</h2>
+        <p>Enter your credentials to access your account.</p>
+      </div>
+
+      <div class="field-group full-width">
+        <label for="li-email">Email Address <span class="required" aria-hidden="true">*</span></label>
+        <input type="email" id="li-email" name="email" placeholder="e.g. john.doe@example.com"
+               autocomplete="email" aria-required="true" aria-describedby="li-email-error" />
+        <span class="error" id="li-email-error" role="alert"></span>
+      </div>
+
+      <div class="field-group full-width">
+        <label for="li-password">Password <span class="required" aria-hidden="true">*</span></label>
+        <div class="pw-wrapper">
+          <input type="password" id="li-password" name="password" placeholder="Enter your password"
+                 autocomplete="current-password" aria-required="true" aria-describedby="li-password-error" />
+          <button type="button" class="pw-toggle" aria-label="Show password" data-target="li-password">Show</button>
+        </div>
+        <span class="error" id="li-password-error" role="alert"></span>
+      </div>
+
+      <div class="field-group full-width remember-row">
+        <label class="checkbox-label">
+          <input type="checkbox" id="li-remember" name="remember" />
+          <span class="checkbox-custom" aria-hidden="true"></span>
+          Remember me
+        </label>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-submit">Log In</button>
+
+      <p class="form-footer-note">
+        Don't have an account?
+        <button type="button" class="link-btn" id="goto-signup">Sign up here</button>
+      </p>
+    </form>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

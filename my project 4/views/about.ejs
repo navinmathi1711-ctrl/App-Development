@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> | My Website</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <main class="container">
+
+    <section class="page-header">
+      <h1>About Us</h1>
+      <p class="subtitle">A little bit about who we are and what we do.</p>
+    </section>
+
+    <section class="about-content">
+      <div class="about-text">
+        <h2>Our Story</h2>
+        <p>
+          We are a small team passionate about building clean, fast, and accessible web experiences.
+          This project demonstrates how easy it is to get a multi-page website up and running with
+          nothing more than <strong>Node.js</strong> and <strong>Express</strong>.
+        </p>
+        <p>
+          No bloated frameworks, no complicated build tools — just straightforward server-side
+          rendering with <strong>EJS</strong> templates and a sprinkle of CSS.
+        </p>
+
+        <h2>Tech Stack</h2>
+        <ul class="tech-list">
+          <li>🟢 <strong>Node.js</strong> — JavaScript runtime</li>
+          <li>🚂 <strong>Express</strong> — HTTP server &amp; routing</li>
+          <li>📝 <strong>EJS</strong> — Server-side HTML templating</li>
+          <li>🎨 <strong>CSS3</strong> — Custom styling (no framework)</li>
+        </ul>
+      </div>
+
+      <div class="about-stats">
+        <div class="stat-card">
+          <span class="stat-number">3</span>
+          <span class="stat-label">Pages</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">1</span>
+          <span class="stat-label">Server File</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">0</span>
+          <span class="stat-label">Databases</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

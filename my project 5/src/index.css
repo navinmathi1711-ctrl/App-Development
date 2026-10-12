@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #FAF6F0;
+    color: #2D231E;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Warm ambient blur circles for backgrounds */
+.bg-warm-radial {
+  background: radial-gradient(circle at 10% 20%, rgba(213, 109, 82, 0.08) 0%, rgba(250, 246, 240, 0) 50%),
+              radial-gradient(circle at 90% 80%, rgba(238, 185, 170, 0.12) 0%, rgba(250, 246, 240, 0) 60%),
+              #FAF6F0;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F4EFEA;
+}
+::-webkit-scrollbar-thumb {
+  background: #DFCEBA;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C7B198;
+}
